@@ -5,7 +5,11 @@ st.set_page_config(page_title="PETANIRAIAK Dashboard", layout="wide")
 # Custom CSS for styling
 st.markdown("""
     <style>
-    .sidebar .sidebar-content {background-color: #4B5D2A;}
+    /* Sidebar background */
+    section[data-testid="stSidebar"] {
+        background-color: #606C38 !important;
+    }
+    .sidebar .sidebar-content {background-color: #606C38;}
     .logo {font-size:32px; font-weight:bold; color:#F9F9F9;}
     .menu-title {color:#F9F9F9; font-size:18px; margin-top:30px;}
     .menu-item {color:#F9F9F9; font-size:16px; margin:10px 0;}
@@ -16,6 +20,15 @@ st.markdown("""
     .item-title {font-size:18px; font-weight:bold;}
     .item-price {color:#E57300; font-size:16px; font-weight:bold;}
     .recent-activity {background:#F6F8F4; border-radius:12px; padding:16px;}
+    /* Top menu header background */
+    .top-header {
+        background-color: #606C38;
+        border-radius: 12px;
+        padding: 18px 24px 12px 24px;
+        margin-bottom: 18px;
+        display: flex;
+        align-items: center;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -31,16 +44,32 @@ with st.sidebar:
     st.markdown('<div class="palmpijot">PalmPijot</div>', unsafe_allow_html=True)
 
 # Top bar
-col1, col2, col3 = st.columns([3, 1, 1])
-with col1:
-    st.text_input("Search for items", "")
-with col2:
-    st.markdown("🛒 0  🔔 0")
-with col3:
-    st.markdown("Hello, Senderos  \n13 May", unsafe_allow_html=True)
+st.markdown(
+    """
+    <div class="top-header">
+        <div style="flex:3;">
+            <input type="text" placeholder="Search for items" 
+                style="width:98%;padding:8px 12px;border-radius:8px;
+                border:1px solid #ccc;font-size:16px;
+                background:#fff;color:#fff;
+                ::placeholder { color: #fff; opacity: 1; }">
+        </div>
+        <div style="flex:1;display:flex;align-items:center;justify-content:center;">
+            <span style="font-size:32px;vertical-align:middle;margin-right:18px;">
+                🛒 <span style="color:#fff;font-size:20px;vertical-align:middle;margin-left:4px;">0</span>
+            </span>
+            <span style="font-size:32px;vertical-align:middle;">
+                🔔 <span style="color:#fff;font-size:20px;vertical-align:middle;margin-left:4px;">0</span>
+            </span>
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 st.markdown('<div class="welcome">Welcome Back</div>', unsafe_allow_html=True)
 st.markdown('<div class="subtitle">Get your latest update for the last 7 days</div>', unsafe_allow_html=True)
+
 
 # Order summary
 st.markdown("""
