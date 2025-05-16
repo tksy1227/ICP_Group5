@@ -34,14 +34,16 @@ st.markdown("""
 
 # Sidebar
 with st.sidebar:
-    st.markdown('<div class="logo">PETANIRAIK</div>', unsafe_allow_html=True)
+    st.image("images/petannaik_logo.png", width=300)
+
     st.markdown('<div class="menu-title">Menu</div>', unsafe_allow_html=True)
     st.markdown('<div class="menu-item">📊 Dashboard</div>', unsafe_allow_html=True)
     st.markdown('<div class="menu-item">🛒 My Cart</div>', unsafe_allow_html=True)
     st.markdown('<div class="menu-item">⚙️ Settings</div>', unsafe_allow_html=True)
     st.markdown('<div class="menu-item">❓ Help Center</div>', unsafe_allow_html=True)
     st.markdown('<div class="menu-item">ℹ️ About Us</div>', unsafe_allow_html=True)
-    st.markdown('<div class="palmpijot">PalmPijot</div>', unsafe_allow_html=True)
+    
+    st.image("images/palmpilot_logo.png", width=260)
 
 # Top bar
 st.markdown(
