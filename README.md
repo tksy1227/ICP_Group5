@@ -10,3 +10,4 @@ Glossary for content in the repository:
 
 Other resources:
 - Trello board: https://trello.com/invite/b/6805ee73430d26ae5c804983/ATTIab15bdb1d4bd9e93ad66406e40aaddbaB5AEC5F2/icp-group-5
+- Figma link for front-end prototype: https://www.figma.com/design/DdXD37qD4ZssEAkm6W6HgF/icp-draft?node-id=0-1&t=s1fLaz96O8vC1JI4-1
