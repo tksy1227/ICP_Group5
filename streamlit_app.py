@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.set_page_config(page_title="PETANIRAIAK Dashboard", layout="wide")
+st.set_page_config(page_title="PETANNAIK Prototype", layout="wide")
 
 # Custom CSS for styling
 st.markdown("""
