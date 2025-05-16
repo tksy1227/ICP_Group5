@@ -43,11 +43,6 @@ else:
     with st.sidebar:
         st.image("images/petannaik_logo.png", width=300)
         st.markdown('<div class="menu-title">Menu</div>', unsafe_allow_html=True)
-        st.markdown('<div class="menu-item">📊 Dashboard</div>', unsafe_allow_html=True)
-        st.markdown('<div class="menu-item">🛒 My Cart</div>', unsafe_allow_html=True)
-        st.markdown('<div class="menu-item">⚙️ Settings</div>', unsafe_allow_html=True)
-        st.markdown('<div class="menu-item">❓ Help Center</div>', unsafe_allow_html=True)
-        st.markdown('<div class="menu-item">ℹ️ About Us</div>', unsafe_allow_html=True)
         st.button("Chatbot", key="palmpilot_logo_btn", help="Go to Chatbot", use_container_width=True, on_click=go_to_chatbot)
 
 
