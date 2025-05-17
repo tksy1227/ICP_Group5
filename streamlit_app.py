@@ -50,7 +50,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- Sidebar ---
+# --- Sidebar---- hi
 if st.session_state.page == "chatbot":
     with st.sidebar:
         st.image("images/palmpilot_logo.png", width=300)
