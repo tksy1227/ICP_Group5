@@ -1,7 +1,7 @@
 # ICP_Group5
 Repo for ICP Group 5
 
-Link to Streamlit app: https://icpgroup5-hechkhsenttgs4ovt3j5cb.streamlit.app/
+Link to Streamlit app: https://icpgroup5-hrjnwbnfolymheak3jxjdj.streamlit.app/
 
 Glossary for content in the repository:
 - code_contributions: All the codes each member has done for this project
