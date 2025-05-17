@@ -18,6 +18,7 @@ st.markdown("""
     section[data-testid="stSidebar"] {
         background-color: #606C38 !important;
     }
+            
     .sidebar .sidebar-content {background-color: #606C38;}
     .logo {font-size:32px; font-weight:bold; color:#F9F9F9;}
     .menu-title {color:#F9F9F9; font-size:18px; margin-top:30px;}
@@ -30,6 +31,22 @@ st.markdown("""
     .item-price {color:#E57300; font-size:16px; font-weight:bold;}
     .recent-activity {background:#F6F8F4; border-radius:12px; padding:16px;}
     .logo-link {cursor:pointer;}
+            
+
+    /* Remove the broad white color rule! */
+    /* Explicitly style buttons and dropdowns to black */
+    [data-testid="stSidebar"] button,
+    [data-testid="stSidebar"] .stButton > button,
+    [data-testid="stSidebar"] .stSelectbox div[role="button"],
+    [data-testid="stSidebar"] .stSelectbox label,
+    [data-testid="stSidebar"] .stSelectbox span,
+    [data-testid="stSidebar"] .stSelectbox .css-1wa3eu0-placeholder,
+    [data-testid="stSidebar"] .stSelectbox .css-1uccc91-singleValue,
+    [data-testid="stSidebar"] .stSelectbox .css-1okebmr-indicatorSeparator,
+    [data-testid="stSidebar"] .stSelectbox .css-1n76uvr-option {
+        color: #000 !important;
+        font-weight: bold !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -37,8 +54,32 @@ st.markdown("""
 if st.session_state.page == "chatbot":
     with st.sidebar:
         st.image("images/palmpilot_logo.png", width=300)
-        st.markdown('<div class="menu-title">Chatbot Menu</div>', unsafe_allow_html=True)
-        st.button("⬅️ Back to Dashboard", key="back_to_dashboard_btn", use_container_width=True, on_click=go_to_main)
+        # Button to return to dashboard
+        st.button("⬅️ Back to Dashboard", use_container_width=True, on_click=go_to_main)
+        st.markdown('<div style="color:#fff; font-size:22px; margin-top:10px; font-weight:bold;">🖥️ PalmPilot Chatbot</div>', unsafe_allow_html=True)
+        st.markdown('<div style="color:#fff; font-size:15px; margin-bottom:16px;">This chatbot is created using the open-source Llama 2 LLM model from Meta.</div>', unsafe_allow_html=True)
+        api_key = st.text_input("Enter Replicate API token:", type="password")
+        invalid_token = not api_key or not api_key.startswith("r8_")
+        if invalid_token and api_key:
+            st.markdown(
+                '<div style="color:#FFD600; background:#B71C1C; padding:10px; border-radius:8px; font-weight:bold;">'
+                '⚠️ Please enter a valid API token!'
+                '</div>',
+                unsafe_allow_html=True
+            )
+        st.markdown('<div style="color: #fff;margin-top:18px; font-weight:bold;">Models and parameters</div>', unsafe_allow_html=True)
+        model = st.selectbox('Choose a Llama2 model', ["Llama2-7B", "Llama2-13B", "Llama2-70B"], key="llama_model")
+        temperature = st.slider("temperature", 0.01, 1.0, 0.10, 0.01)
+        top_p = st.slider("top_p", 0.01, 1.0, 0.90, 0.01)
+        max_length = st.slider("max_length", 20, 80, 50, 1)
+        st.markdown(
+            '<a href="https://blog.streamlit.io/how-to-build-an-llama2-chatbot/" target="_blank" style="font-size:14px; color:#fff;">'
+            '📖 Learn how to build this app in this blog!</a>',
+            unsafe_allow_html=True
+        )
+        if st.button("Clear Chat History"):
+            st.session_state['chat_history'] = []
+
 else:
     with st.sidebar:
         st.image("images/petannaik_logo.png", width=300)
@@ -136,7 +177,26 @@ if st.session_state.page == "main":
                     '<button>Add to cart</button> <button>Buy now</button>'
                     '</div>', unsafe_allow_html=True)
 
-# --- Chatbot Page ---
-elif st.session_state.page == "chatbot":
-    st.markdown('<div class="welcome">Chatbot</div>', unsafe_allow_html=True)
-    st.markdown("This is the chatbot page. You will be able to chat and view chat history here (feature coming soon).")
+# --- Main Chatbot Page ---
+if st.session_state.page == "chatbot":
+    # Centered chat header and input
+    st.markdown('<div class="centered-chat">', unsafe_allow_html=True)
+    st.markdown(
+        """
+        <div class="chat-header">
+            <div class="chat-icon">🖥️</div>
+            How can I help you today?
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    # Centered input
+    with st.form("chat_input_form", clear_on_submit=True):
+        user_message = st.text_input("Ask anything", key="chat_input", label_visibility="collapsed", placeholder="Ask anything")
+        submitted = st.form_submit_button("➤")
+        if submitted and user_message:
+            if "chat_history" not in st.session_state:
+                st.session_state["chat_history"] = []
+            st.session_state["chat_history"].append(f"🧑‍💻 {user_message}")
+            st.experimental_rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
