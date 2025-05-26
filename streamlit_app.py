@@ -200,3 +200,60 @@ if st.session_state.page == "chatbot":
             st.session_state["chat_history"].append(f"🧑‍💻 {user_message}")
             st.experimental_rerun()
     st.markdown('</div>', unsafe_allow_html=True)
+
+    import pandas as pd
+import os
+import threading
+import time
+import smtplib
+from email.mime.text import MIMEText
+
+FEEDBACK_FILE = "feedback.csv"
+EMAIL_INTERVAL = 300  # 5 minutes in seconds
+
+def send_feedback_email():
+    while True:
+        time.sleep(EMAIL_INTERVAL)
+        if os.path.exists(FEEDBACK_FILE) and os.path.getsize(FEEDBACK_FILE) > 0:
+            df = pd.read_csv(FEEDBACK_FILE)
+            if not df.empty:
+                msg = MIMEText(df.to_string(index=False))
+                msg['Subject'] = 'New User Feedback from PETANNAIK'
+                msg['From'] = "your_gmail@gmail.com"
+                msg['To'] = "chloewan06@gmail.com"
+
+                try:
+                    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+                        server.login("your_gmail@gmail.com", "your_app_password")
+                        server.send_message(msg)
+                    # Clear feedback after sending
+                    open(FEEDBACK_FILE, "w").close()
+                except Exception as e:
+                    print("Failed to send feedback email:", e)
+
+# Start the background thread only once
+if "feedback_thread_started" not in st.session_state:
+    threading.Thread(target=send_feedback_email, daemon=True).start()
+    st.session_state["feedback_thread_started"] = True
+
+# --- Feedback Section ---
+st.markdown("---")
+st.header("💬 Feedback")
+with st.form("feedback_form"):
+    user_name = st.text_input("Your Name (optional)")
+    user_email = st.text_input("Your Email (optional)")
+    feedback_text = st.text_area("Your Feedback", max_chars=1000)
+    submitted = st.form_submit_button("Submit Feedback")
+    if submitted and feedback_text.strip():
+        feedback_entry = {
+            "name": user_name,
+            "email": user_email,
+            "feedback": feedback_text
+        }
+        # Append feedback to CSV
+        df = pd.DataFrame([feedback_entry])
+        if os.path.exists(FEEDBACK_FILE) and os.path.getsize(FEEDBACK_FILE) > 0:
+            df.to_csv(FEEDBACK_FILE, mode='a', header=False, index=False)
+        else:
+            df.to_csv(FEEDBACK_FILE, mode='w', header=True, index=False)
+        st.success("Thank you for your feedback!")
