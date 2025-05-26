@@ -7,6 +7,8 @@ app = FastAPI()
 def health_check():
     return {"status": "API is running"}
 
+
+
 # Define a function to return a description of the app
 def get_app_description():
 	return (
