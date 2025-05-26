@@ -1,10 +1,15 @@
 import streamlit as st
+import pandas as pd
+import os
+import threading
+import time
+import smtplib
+from email.mime.text import MIMEText
 
 st.set_page_config(page_title="PETANNAIK Prototype", layout="wide")
 
-# --- Page Navigation State ---
-if "page" not in st.session_state:
-    st.session_state.page = "main"
+FEEDBACK_FILE = "feedback.csv"
+EMAIL_INTERVAL = 300  # 5 minutes in seconds
 
 def go_to_chatbot():
     st.session_state.page = "chatbot"
@@ -12,13 +17,15 @@ def go_to_chatbot():
 def go_to_main():
     st.session_state.page = "main"
 
+def go_to_feedback():
+    st.session_state.page = "feedback"
+
 # --- Custom CSS for styling ---
 st.markdown("""
     <style>
     section[data-testid="stSidebar"] {
         background-color: #606C38 !important;
     }
-            
     .sidebar .sidebar-content {background-color: #606C38;}
     .logo {font-size:32px; font-weight:bold; color:#F9F9F9;}
     .menu-title {color:#F9F9F9; font-size:18px; margin-top:30px;}
@@ -31,8 +38,6 @@ st.markdown("""
     .item-price {color:#E57300; font-size:16px; font-weight:bold;}
     .recent-activity {background:#F6F8F4; border-radius:12px; padding:16px;}
     .logo-link {cursor:pointer;}
-            
-
     /* Remove the broad white color rule! */
     /* Explicitly style buttons and dropdowns to black */
     [data-testid="stSidebar"] button,
@@ -47,15 +52,47 @@ st.markdown("""
         color: #000 !important;
         font-weight: bold !important;
     }
+    /* Make all sidebar text white */
+    [data-testid="stSidebar"] * {
+        color: #fff !important;
+        font-weight: 400;
+    }
+    [data-testid="stSidebar"] input, 
+    [data-testid="stSidebar"] textarea {
+        background: #4B5D2A !important;
+        color: #fff !important;
+        border: 1px solid #fff !important;
+    }
+    [data-testid="stSidebar"] .stSelectbox div[role="button"] {
+        background: #4B5D2A !important;
+        color: #fff !important;
+    }
+    [data-testid="stSidebar"] .stSlider label,
+    [data-testid="stSidebar"] .stSlider span {
+        color: #fff !important;
+    }
+    [data-testid="stSidebar"] button {
+        background: #283618 !important;
+        color: #fff !important;
+        border: 1px solid #fff !important;
+        font-weight: bold !important;
+    }
+    [data-testid="stSidebar"] {
+        box-shadow: none !important;
+    }
     </style>
 """, unsafe_allow_html=True)
 
-# --- Sidebar---- hi
+# --- Page Navigation State ---
+if "page" not in st.session_state:
+    st.session_state.page = "main"
+
+# --- Sidebar ---
 if st.session_state.page == "chatbot":
     with st.sidebar:
         st.image("images/palmpilot_logo.png", width=300)
-        # Button to return to dashboard
         st.button("⬅️ Back to Dashboard", use_container_width=True, on_click=go_to_main)
+        st.button("Feedback", key="feedback_btn_sidebar", help="Go to Feedback", use_container_width=True, on_click=go_to_feedback)
         st.markdown('<div style="color:#fff; font-size:22px; margin-top:10px; font-weight:bold;">🖥️ PalmPilot Chatbot</div>', unsafe_allow_html=True)
         st.markdown('<div style="color:#fff; font-size:15px; margin-bottom:16px;">This chatbot is created using the open-source Llama 2 LLM model from Meta.</div>', unsafe_allow_html=True)
         api_key = st.text_input("Enter Replicate API token:", type="password")
@@ -80,12 +117,19 @@ if st.session_state.page == "chatbot":
         if st.button("Clear Chat History"):
             st.session_state['chat_history'] = []
 
+elif st.session_state.page == "feedback":
+    with st.sidebar:
+        st.image("images/petannaik_logo.png", width=300)
+        st.markdown('<div class="menu-title">Menu</div>', unsafe_allow_html=True)
+        st.button("⬅️ Back to Dashboard", use_container_width=True, on_click=go_to_main)
+        st.button("Chatbot", key="palmpilot_logo_btn", help="Go to Chatbot", use_container_width=True, on_click=go_to_chatbot)
+
 else:
     with st.sidebar:
         st.image("images/petannaik_logo.png", width=300)
         st.markdown('<div class="menu-title">Menu</div>', unsafe_allow_html=True)
         st.button("Chatbot", key="palmpilot_logo_btn", help="Go to Chatbot", use_container_width=True, on_click=go_to_chatbot)
-
+        st.button("Feedback", key="feedback_btn", help="Go to Feedback", use_container_width=True, on_click=go_to_feedback)
 
 # --- Main Page ---
 if st.session_state.page == "main":
@@ -178,8 +222,7 @@ if st.session_state.page == "main":
                     '</div>', unsafe_allow_html=True)
 
 # --- Main Chatbot Page ---
-if st.session_state.page == "chatbot":
-    # Centered chat header and input
+elif st.session_state.page == "chatbot":
     st.markdown('<div class="centered-chat">', unsafe_allow_html=True)
     st.markdown(
         """
@@ -190,7 +233,6 @@ if st.session_state.page == "chatbot":
         """,
         unsafe_allow_html=True
     )
-    # Centered input
     with st.form("chat_input_form", clear_on_submit=True):
         user_message = st.text_input("Ask anything", key="chat_input", label_visibility="collapsed", placeholder="Ask anything")
         submitted = st.form_submit_button("➤")
@@ -201,16 +243,32 @@ if st.session_state.page == "chatbot":
             st.experimental_rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-    import pandas as pd
-import os
-import threading
-import time
-import smtplib
-from email.mime.text import MIMEText
+# --- Feedback Page ---
+elif st.session_state.page == "feedback":
+    st.header("💬 Feedback")
+    st.markdown("We value your feedback! Please let us know your thoughts below.")
+    with st.form("feedback_form"):
+        user_name = st.text_input("Your Name (optional)")
+        user_email = st.text_input("Your Email (optional)")
+        feedback_text = st.text_area("Your Feedback", max_chars=1000)
+        submitted = st.form_submit_button("Submit Feedback")
+        if submitted and feedback_text.strip():
+            feedback_entry = {
+                "name": user_name,
+                "email": user_email,
+                "feedback": feedback_text
+            }
+            # Append feedback to CSV
+            df = pd.DataFrame([feedback_entry])
+            if os.path.exists(FEEDBACK_FILE) and os.path.getsize(FEEDBACK_FILE) > 0:
+                df.to_csv(FEEDBACK_FILE, mode='a', header=False, index=False)
+            else:
+                df.to_csv(FEEDBACK_FILE, mode='w', header=True, index=False)
+            st.success("Thank you for your feedback!")
+    if st.button("⬅️ Back to Dashboard"):
+        st.session_state.page = "main"
 
-FEEDBACK_FILE = "feedback.csv"
-EMAIL_INTERVAL = 300  # 5 minutes in seconds
-
+# --- Feedback Email Thread ---
 def send_feedback_email():
     while True:
         time.sleep(EMAIL_INTERVAL)
@@ -235,25 +293,3 @@ def send_feedback_email():
 if "feedback_thread_started" not in st.session_state:
     threading.Thread(target=send_feedback_email, daemon=True).start()
     st.session_state["feedback_thread_started"] = True
-
-# --- Feedback Section ---
-st.markdown("---")
-st.header("💬 Feedback")
-with st.form("feedback_form"):
-    user_name = st.text_input("Your Name (optional)")
-    user_email = st.text_input("Your Email (optional)")
-    feedback_text = st.text_area("Your Feedback", max_chars=1000)
-    submitted = st.form_submit_button("Submit Feedback")
-    if submitted and feedback_text.strip():
-        feedback_entry = {
-            "name": user_name,
-            "email": user_email,
-            "feedback": feedback_text
-        }
-        # Append feedback to CSV
-        df = pd.DataFrame([feedback_entry])
-        if os.path.exists(FEEDBACK_FILE) and os.path.getsize(FEEDBACK_FILE) > 0:
-            df.to_csv(FEEDBACK_FILE, mode='a', header=False, index=False)
-        else:
-            df.to_csv(FEEDBACK_FILE, mode='w', header=True, index=False)
-        st.success("Thank you for your feedback!")
