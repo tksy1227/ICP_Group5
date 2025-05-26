@@ -1,7 +1,14 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from schemas import RecommendationResponse, FeedbackRequest, ChatbotRequest, ChatbotResponse # Add after pydantic file is done
+import pickle
+import os
 import uvicorn
 
 app = FastAPI()
+
+MODEL_DIR = "models"
+user_model = pickle.load(open(os.path.join(MODEL_DIR, "association_model.pkl"), "rb"))
+product_model = pickle.load(open(os.path.join(MODEL_DIR, "content_based_model.pkl"), "rb"))
 
 @app.get("/health")
 def health_check():
@@ -27,7 +34,7 @@ async def root():
 # Create API endpoint to get user recommendations (make changes to this pls)
 @app.get("/api/v1/ecommerce/recommendations/user/{user_id}")
 async def get_product_recommendations(user_id: str):
-
+    
 
     # Return a response in JSON format, showing the user recommendations
     # This includes the product recommendation details, e.g. name, price, etc
