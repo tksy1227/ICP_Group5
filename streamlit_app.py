@@ -5,6 +5,11 @@ import threading
 import time
 import smtplib
 from email.mime.text import MIMEText
+import streamlit as st
+import requests
+import json
+import csv
+from datetime import datetime
 
 st.set_page_config(page_title="PETANNAIK Prototype", layout="wide")
 
@@ -124,6 +129,39 @@ elif st.session_state.page == "feedback":
         st.button("⬅️ Back to Dashboard", use_container_width=True, on_click=go_to_main)
         st.button("Chatbot", key="palmpilot_logo_btn", help="Go to Chatbot", use_container_width=True, on_click=go_to_chatbot)
 
+    st.title("Feedback Form")
+
+    import requests
+    import json
+
+    GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw3_zKeRDeV5yOg0FaZcsTq00KYvaiB7Qsh9RHbwis4NlnE-ddydgX6byYhYV-NNO9D/exec"
+
+    with st.form("feedback_form"):
+        name = st.text_input("Name")
+        email = st.text_input("Email")
+        feedback = st.text_area("Feedback")
+        submitted = st.form_submit_button("Send Feedback")
+
+        if submitted:
+            timestamp = datetime.utcnow().isoformat() + "Z"
+            new_data = {
+                "name": name,
+                "email": email,
+                "feedback": feedback,
+                "timestamp": timestamp
+            }
+
+            # Send to Google Apps Script Web App
+            try:
+                response = requests.post(GAS_WEB_APP_URL, json=new_data)
+                if response.status_code == 200:
+                    st.success("Thank you! Your feedback has been sent and saved.")
+                else:
+                    st.error(f"Error sending feedback: HTTP {response.status_code}")
+            except Exception as e:
+                st.error(f"Error sending feedback: {e}")
+
+
 else:
     with st.sidebar:
         st.image("images/petannaik_logo.png", width=300)
@@ -242,54 +280,3 @@ elif st.session_state.page == "chatbot":
             st.session_state["chat_history"].append(f"🧑‍💻 {user_message}")
             st.experimental_rerun()
     st.markdown('</div>', unsafe_allow_html=True)
-
-# --- Feedback Page ---
-elif st.session_state.page == "feedback":
-    st.header("💬 Feedback")
-    st.markdown("We value your feedback! Please let us know your thoughts below.")
-    with st.form("feedback_form"):
-        user_name = st.text_input("Your Name (optional)")
-        user_email = st.text_input("Your Email (optional)")
-        feedback_text = st.text_area("Your Feedback", max_chars=1000)
-        submitted = st.form_submit_button("Submit Feedback")
-        if submitted and feedback_text.strip():
-            feedback_entry = {
-                "name": user_name,
-                "email": user_email,
-                "feedback": feedback_text
-            }
-            # Append feedback to CSV
-            df = pd.DataFrame([feedback_entry])
-            if os.path.exists(FEEDBACK_FILE) and os.path.getsize(FEEDBACK_FILE) > 0:
-                df.to_csv(FEEDBACK_FILE, mode='a', header=False, index=False)
-            else:
-                df.to_csv(FEEDBACK_FILE, mode='w', header=True, index=False)
-            st.success("Thank you for your feedback!")
-    if st.button("⬅️ Back to Dashboard"):
-        st.session_state.page = "main"
-
-# --- Feedback Email Thread ---
-def send_feedback_email():
-    while True:
-        time.sleep(EMAIL_INTERVAL)
-        if os.path.exists(FEEDBACK_FILE) and os.path.getsize(FEEDBACK_FILE) > 0:
-            df = pd.read_csv(FEEDBACK_FILE)
-            if not df.empty:
-                msg = MIMEText(df.to_string(index=False))
-                msg['Subject'] = 'New User Feedback from PETANNAIK'
-                msg['From'] = "your_gmail@gmail.com"
-                msg['To'] = "chloewan06@gmail.com"
-
-                try:
-                    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-                        server.login("your_gmail@gmail.com", "your_app_password")
-                        server.send_message(msg)
-                    # Clear feedback after sending
-                    open(FEEDBACK_FILE, "w").close()
-                except Exception as e:
-                    print("Failed to send feedback email:", e)
-
-# Start the background thread only once
-if "feedback_thread_started" not in st.session_state:
-    threading.Thread(target=send_feedback_email, daemon=True).start()
-    st.session_state["feedback_thread_started"] = True
