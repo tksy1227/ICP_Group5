@@ -3,3 +3,8 @@ uvicorn
 joblib
 numpy
 torch
+pandas
+scikit-learn
+pydantic
+langchain
+llama-cpp-python
