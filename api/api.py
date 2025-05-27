@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import JSONResponse
 # from schemas import RecommendationResponse, FeedbackRequest, ChatbotRequest, ChatbotResponse # Add after pydantic file is done
-from recsys.recsys_schema import ProductRecommendationResponse
+from recsys.recsys_schema import ProductRecommendationResponse, UserRecommendationResponse
 import pickle, joblib
 import os
 import uvicorn
@@ -15,7 +15,50 @@ MODEL_DIR = "../"
 # product_model = pickle.load(open(os.path.join(MODEL_DIR, "content_based_model.pkl"), "rb"))
 
 
+# --------------------------------------------------------------------------------------------------------
+# Code for user recommendation
+# Load saved model once
+association_model = joblib.load(os.path.join(MODEL_DIR, 'association_rule_model.pkl'))
+rules = association_model['rules']
+merged_data = association_model['data']
 
+def get_association_recommendations(user_id: str, top_n: int = 10):
+    # Get product IDs purchased by the user
+    user_products = merged_data[merged_data['user_id'] == user_id]['product_id'].unique()
+
+    if len(user_products) == 0:
+        return None  # No purchase history or invalid user_id
+
+    recommendation_dict = {}
+
+    # Loop through each purchased product and check rules
+    for pid in user_products:
+        related_rules = rules[rules['antecedents'].apply(lambda x: pid in x)]
+
+        for _, row in related_rules.iterrows():
+            for consequent in row['consequents']:
+                if consequent not in user_products:
+                    if consequent not in recommendation_dict or row['lift'] > recommendation_dict[consequent]:
+                        recommendation_dict[consequent] = row['lift']
+
+    # Sort recommendations by lift
+    sorted_recommendations = sorted(recommendation_dict.items(), key=lambda x: x[1], reverse=True)[:top_n]
+
+    # Get product names
+    results = []
+    for product_id, lift in sorted_recommendations:
+        product_name = merged_data.loc[
+            merged_data['product_id'] == product_id, 'name'
+        ].dropna().unique()
+        name = product_name[0] if len(product_name) > 0 else "Unknown Product"
+
+        results.append({
+            "product_id": product_id,
+            "name": name,
+            "lift": round(float(lift), 4)
+        })
+
+    return results
 
 
 # --------------------------------------------------------------------------------------------------------
@@ -68,7 +111,9 @@ def recommend_similar_products(product_id: str, top_n: int = 10):
 def health_check():
     return {"status": "API is running"}
 
-
+@app.get("/ping")
+def ping_check():
+    return {"status": "API is running"}
 
 # Define a function to return a description of the app
 def get_app_description():
@@ -88,25 +133,33 @@ async def root():
 
 
 # Create API endpoint to get user recommendations (make changes to this pls)
-@app.get("/api/v1/ecommerce/recommendations/user/{user_id}")
-async def get_product_recommendations(user_id: str):
+@app.get("/api/v1/ecommerce/recommendations/user/{user_id}", response_model=List[UserRecommendationResponse])
+async def get_user_recommendations(user_id: str, top_n: int = Query(10, ge=1, le=50)):
     
+    recommendations = get_association_recommendations(user_id, top_n)
 
+    if recommendations is None:
+        raise HTTPException(status_code=404, detail="Not Found")
+
+    return JSONResponse(content={
+        "status": "success",
+        "count": len(recommendations),
+        "data": recommendations
+    })
     # Return a response in JSON format, showing the user recommendations
     # This includes the product recommendation details, e.g. name, price, etc
-    return {"message": f"Product recommendations for user {user_id}"}
 
 
 # --------------------------------------------------------------------------------------------------------
 
 
 # Create the API endpoint to get product recommendations (make changes to this pls)
-@app.get("/api/v1/ecommerce/recommendations/products/{product_id}", response_model=List[RecommendationResponse])
+@app.get("/api/v1/ecommerce/recommendations/products/{product_id}", response_model=List[ProductRecommendationResponse])
 async def get_product_recommendations(product_id: str, top_n: int = Query(10, ge=1, le=50)):
 
     recommendations = recommend_similar_products(product_id, top_n)
     if not recommendations:
-        raise HTTPException(status_code=404, detail="Product ID not found or no similar items.")
+        raise HTTPException(status_code=404, detail="Not Found")
     
     return JSONResponse(content={
         "status": "success",
