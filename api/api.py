@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from schemas import RecommendationResponse, FeedbackRequest, ChatbotRequest, ChatbotResponse # Add after pydantic file is done
+# from schemas import RecommendationResponse, FeedbackRequest, ChatbotRequest, ChatbotResponse # Add after pydantic file is done
 import pickle
 import os
 import uvicorn

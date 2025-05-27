@@ -1,2 +1,4 @@
+from api.models.model import MatrixFactorization
 import pickle
-model = pickle.load(open("models/association_model.pkl", "rb"))
+
+model = pickle.load(open(r"models/content_based_model.pkl", "rb"))
