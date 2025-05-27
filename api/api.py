@@ -7,8 +7,7 @@ import uvicorn
 app = FastAPI()
 
 MODEL_DIR = "models"
-user_model = pickle.load(open(os.path.join(MODEL_DIR, "association_model.pkl"), "rb"))
-product_model = pickle.load(open(os.path.join(MODEL_DIR, "content_based_model.pkl"), "rb"))
+# user_model = pickle.load(open(os.path.join(MODEL_DIR, "association_model.pkl"), "rb"))
 
 @app.get("/health")
 def health_check():
@@ -40,6 +39,9 @@ async def get_product_recommendations(user_id: str):
     # This includes the product recommendation details, e.g. name, price, etc
     return {"message": f"Product recommendations for user {user_id}"}
 
+
+
+product_model = pickle.load(open(os.path.join(MODEL_DIR, "content_based_model.pkl"), "rb"))
 
 
 
