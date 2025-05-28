@@ -134,23 +134,23 @@ async def post_feedback(feedback: ApiV1EcommerceRecommendationFeedbackPostReques
 
         file_path = "recsys_feedback.csv"
 
-        # Append or create the CSV
-        if os.path.exists(file_path):
-            df = pd.read_csv(file_path)
-            df = df.append(new_row, ignore_index=True)
-        else:
+        # Create or append to CSV
+        if not os.path.exists(file_path):
+            # Write new file with header
             df = pd.DataFrame([new_row])
-
-        df.to_csv(file_path, index=False)
+            df.to_csv(file_path, index=False)
+        else:
+            # Append without rewriting header
+            df = pd.DataFrame([new_row])
+            df.to_csv(file_path, mode='a', header=False, index=False)
 
         return ApiV1EcommerceRecommendationFeedbackPostResponse(
             message="Feedback given successfully"
         )
 
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        # Catch-all for unexpected errors
+    except HTTPException:
+        raise
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"message": "Not Found"}
@@ -178,28 +178,45 @@ async def post_chatbot_message(body: ApiV1MessagingChatbotPostRequestBody):
             message="Please enter a valid message.",
             recommended_products=[]
         )
+    
+    response_text = qa_chain.run(user_msg)
 
-    try:
-        response_text = qa_chain.run(user_msg)
+    # Simulated static product
+    sample_product = RecommendedProductListItem(
+        product_id=UUID("123e4567-e89b-42d3-a456-426614174000"),
+        name="Fertilizer ABC",
+        category="Fertilizer",
+        price=100000,
+        recommendation_id=UUID("123e4567-e89b-42d3-a456-426614174000"),
+        relevance_score=0.95
+    )
 
-        # Simulated static product (replace with real logic later)
-        sample_product = RecommendedProductListItem(
-            product_id="123e4567-e89b-12d3-a456-426614174000",
-            name="Fertilizer ABC",
-            category="Fertilizer",
-            price=100000,
-            recommendation_id="123e4567-e89b-12d3-a456-426614174000",
-            relevance_score=0.95
-        )
+    return ApiV1MessagingChatbotPost200Response(
+        message=response_text,
+        recommended_products=[RecommendedProductList(Items=[sample_product])]
+    )
 
-        return ApiV1MessagingChatbotPost200Response(
-            message=response_text,
-            recommended_products=[RecommendedProductList(Items=[sample_product])]
-        )
+    # try:
+    #     response_text = qa_chain.run(user_msg)
 
-    except Exception as e:
-        return ApiV1MessagingChatbotPost200Response(
-            message="Sorry, I encountered an error.",
-            recommended_products=[]
-        )
+    #     # Simulated static product (replace with real logic later)
+    #     sample_product = RecommendedProductListItem(
+    #         product_id="123e4567-e89b-12d3-a456-426614174000",
+    #         name="Fertilizer ABC",
+    #         category="Fertilizer",
+    #         price=100000,
+    #         recommendation_id="123e4567-e89b-12d3-a456-426614174000",
+    #         relevance_score=0.95
+    #     )
+
+    #     return ApiV1MessagingChatbotPost200Response(
+    #         message=response_text,
+    #         recommended_products=[RecommendedProductList(Items=[sample_product])]
+    #     )
+
+    # except Exception as e:
+    #     return ApiV1MessagingChatbotPost200Response(
+    #         message="Sorry, I encountered an error.",
+    #         recommended_products=[]
+    #     )
     # Process is to send the message to the chatbot and get a response from it

@@ -62,7 +62,7 @@ def get_product_recommendations(product_id: UUID, top_n: int = 10) -> List[Recom
         return []
 
     idx = product_indices[pid_str]
-    sim_scores = list(enumerate(cosine_sim[idx]))
+    sim_scores = list(enumerate(cosine_sim[idx].flatten()))
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
 
     results = []
