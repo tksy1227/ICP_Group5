@@ -1,5 +1,3 @@
-# chatbot/llm.py
-
 from langchain.llms.base import LLM
 from llama_cpp import Llama
 
