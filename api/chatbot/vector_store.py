@@ -10,5 +10,4 @@ def get_retriever(persist_directory: str = "vector_db", k: int = 2) -> VectorSto
         embedding_function=embedding_model
     )
 
-    retriever = db.as_retriever(search_kwargs={"k": k})
-    return retriever
+    return db.as_retriever(search_kwargs={"k": k})

@@ -21,21 +21,21 @@ import uvicorn
 from typing import List
 
 from recsys.recommendation import get_user_recommendations, get_product_recommendations
-# from chatbot.vector_store import get_retriever
-# from langchain.chains import RetrievalQA
-# from llama_cpp import LlamaCppLLM
+from chatbot.vector_store import get_retriever
+from langchain.chains import RetrievalQA
+from langchain.llms.base import LLM
+from chatbot.llm import LlamaCppLLM
 
 app = FastAPI()
 
-# # Chatbot Initialisation
-# retriever = get_retriever()
+retriever = get_retriever()
 
-# # Construct the RetrievalQA chain using retriever + LLM
-# qa_chain = RetrievalQA.from_chain_type(
-#     llm=LlamaCppLLM(),
-#     chain_type="stuff",
-#     retriever=retriever
-# )
+# Construct the RetrievalQA chain using retriever + LLM
+qa_chain = RetrievalQA.from_chain_type(
+    llm=LlamaCppLLM(),
+    chain_type="stuff",
+    retriever=retriever
+)
 
 # --------------------------------------------------------------------------------------------------------
 
@@ -112,6 +112,11 @@ def get_recommendations_by_product(product_id: UUID):
 
 
 # Create the API endpoint to post the user feedback
+@app.post(
+    "/api/v1/ecommerce/recommendation/feedback",
+    response_model=ApiV1EcommerceRecommendationFeedbackPostResponse,
+    responses={400: {"model": ErrorResponse, "description": "Bad Request"}}
+)
 async def post_feedback(feedback: ApiV1EcommerceRecommendationFeedbackPostRequestBody):
     try:
         if not all([feedback.user_id, feedback.product_id, feedback.recommendation_id, feedback.action]):
@@ -157,39 +162,44 @@ async def post_feedback(feedback: ApiV1EcommerceRecommendationFeedbackPostReques
 # --------------------------------------------------------------------------------------------------------
 
 
-# # Create the API endpoint to post the chatbot message
-# @app.post(
-#     "/api/v1/messaging/chatbot",
-#     response_model=ApiV1MessagingChatbotPost200Response,
-#     responses={
-#         422: {"model": HTTPValidationError, "description": "Validation Error"}
-#     }
-# )
-# async def post_chatbot_message(body: ApiV1MessagingChatbotPostRequestBody):
-#     user_msg = body.message
+# Create the API endpoint to post the chatbot message
+@app.post(
+    "/api/v1/messaging/chatbot",
+    response_model=ApiV1MessagingChatbotPost200Response,
+    responses={
+        422: {"model": HTTPValidationError, "description": "Validation Error"}
+    }
+)
+async def post_chatbot_message(body: ApiV1MessagingChatbotPostRequestBody):
+    user_msg = body.message
 
-#     try:
-#         response_text = qa_chain.run(user_msg)
+    if not user_msg or user_msg.strip() == "":
+        return ApiV1MessagingChatbotPost200Response(
+            message="Please enter a valid message.",
+            recommended_products=[]
+        )
 
-#         # Simulated static recommendation
-#         sample_product = RecommendedProductListItem(
-#             product_id="123e4567-e89b-12d3-a456-426614174000",
-#             name="Fertilizer ABC",
-#             category="Fertilizer",
-#             price=100000,
-#             recommendation_id="123e4567-e89b-12d3-a456-426614174000",
-#             relevance_score=0.95
-#         )
+    try:
+        response_text = qa_chain.run(user_msg)
 
-#         return ApiV1MessagingChatbotPost200Response(
-#             message=response_text,
-#             recommended_products=[RecommendedProductList(Items=[sample_product])]
-#         )
+        # Simulated static product (replace with real logic later)
+        sample_product = RecommendedProductListItem(
+            product_id="123e4567-e89b-12d3-a456-426614174000",
+            name="Fertilizer ABC",
+            category="Fertilizer",
+            price=100000,
+            recommendation_id="123e4567-e89b-12d3-a456-426614174000",
+            relevance_score=0.95
+        )
 
-#     except Exception as e:
-#         # You can log the error or return a fallback message
-#         return ApiV1MessagingChatbotPost200Response(
-#             message="Sorry, I encountered an error.",
-#             recommended_products=[]
-#         )
-#     # Process is to send the message to the chatbot and get a response from it
+        return ApiV1MessagingChatbotPost200Response(
+            message=response_text,
+            recommended_products=[RecommendedProductList(Items=[sample_product])]
+        )
+
+    except Exception as e:
+        return ApiV1MessagingChatbotPost200Response(
+            message="Sorry, I encountered an error.",
+            recommended_products=[]
+        )
+    # Process is to send the message to the chatbot and get a response from it
