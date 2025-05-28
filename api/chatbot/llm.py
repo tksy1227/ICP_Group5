@@ -5,7 +5,7 @@ from llama_cpp import Llama
 
 # Initialise llama.cpp model
 llm = Llama(
-    model_path=r"C:\Users\louis\Downloads\Chatbot\llama-2-7b-chat.Q4_K_M.gguf",
+    model_path=r"C:\Users\Chloe\Downloads\llama-2-7b-chat.Q4_K_M.gguf",
     n_ctx=2048,
     n_threads=6
 )
