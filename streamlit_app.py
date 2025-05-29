@@ -2,8 +2,18 @@ import streamlit as st
 import requests
 from datetime import datetime
 import random
+import os
 
-st.set_page_config(page_title="PETANNAIK Prototype", layout="wide")
+# --- Replicate API Credential Handling (Required for All Features) ---
+st.sidebar.title("API Credential Required")
+replicate_api = st.sidebar.text_input("Enter Replicate API token:", type="password")
+if not replicate_api:
+    st.sidebar.warning("Please enter your Replicate API token to use the app.")
+    st.stop()  # Stop the app here if no token is provided
+
+# Set the environment variable for all downstream code
+os.environ["REPLICATE_API_TOKEN"] = replicate_api
+st.sidebar.success("API token set! You can now use the app.")
 
 # --- Product mapping dictionaries ---
 product_data = [

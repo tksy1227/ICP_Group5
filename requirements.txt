@@ -8,3 +8,5 @@ scikit-learn
 pydantic
 langchain
 llama-cpp-python
+langchain-community
+replicate

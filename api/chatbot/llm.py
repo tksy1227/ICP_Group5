@@ -1,20 +1,26 @@
 from langchain.llms.base import LLM
-from llama_cpp import Llama
+import replicate
+import os
 
-# Initialise llama.cpp model
-llm = Llama(
-    model_path=r"C:\Users\Chloe\Downloads\llama-2-7b-chat.Q4_K_M.gguf",
-    n_ctx=2048,
-    n_threads=6
-)
+class ReplicateLlamaLLM(LLM):
+    def __init__(self):
+        self.api_token = os.environ["REPLICATE_API_TOKEN"]
+        replicate.Client(api_token=self.api_token)
 
-class LlamaCppLLM(LLM):
     def _call(self, prompt, **kwargs):
-        max_input_length = 2048 - 128
-        truncated_prompt = prompt[:max_input_length]
-        output = llm(f"<s>[INST] {truncated_prompt} [/INST]", max_tokens=512, temperature=0.7, top_p=0.95)
-        return output["choices"][0]["text"].strip()
+        # You can change the model version to the latest Llama2 or Llama3 from Replicate's website
+        output = replicate.run(
+            "meta/a16z-infra/llama7b-v2-chat:4f0a4744c7295c024a1de15e1a63c880d3da035fa1f49bfd344fe076074c8eea",  # Example version
+            input={
+                "prompt": prompt,
+                "max_new_tokens": 512,
+                "temperature": 0.7,
+                "top_p": 0.95
+            }
+        )
+        # Replicate returns a generator; join the output
+        return "".join(list(output))
 
     @property
     def _llm_type(self):
-        return "llama-cpp"
+        return "replicate-llama"
