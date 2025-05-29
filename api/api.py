@@ -26,7 +26,16 @@ from langchain.chains import RetrievalQA
 from langchain.llms.base import LLM
 from chatbot.llm import LlamaCppLLM
 
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Or restrict to your Streamlit Cloud domain
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 retriever = get_retriever()
 
