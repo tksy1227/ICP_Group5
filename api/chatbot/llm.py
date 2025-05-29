@@ -3,14 +3,13 @@ import replicate
 import os
 
 class ReplicateLlamaLLM(LLM):
-    def __init__(self):
-        self.api_token = os.environ["REPLICATE_API_TOKEN"]
-        replicate.Client(api_token=self.api_token)
-
     def _call(self, prompt, **kwargs):
-        # You can change the model version to the latest Llama2 or Llama3 from Replicate's website
+        api_token = os.environ.get("REPLICATE_API_TOKEN")
+        if not api_token:
+            raise ValueError("REPLICATE_API_TOKEN environment variable is not set.")
+        replicate.Client(api_token=api_token)
         output = replicate.run(
-            "meta/a16z-infra/llama7b-v2-chat:4f0a4744c7295c024a1de15e1a63c880d3da035fa1f49bfd344fe076074c8eea",  # Example version
+            "meta/a16z-infra/llama7b-v2-chat:4f0a4744c7295c024a1de15e1a63c880d3da035fa1f49bfd344fe076074c8eea",
             input={
                 "prompt": prompt,
                 "max_new_tokens": 512,
@@ -18,7 +17,6 @@ class ReplicateLlamaLLM(LLM):
                 "top_p": 0.95
             }
         )
-        # Replicate returns a generator; join the output
         return "".join(list(output))
 
     @property
