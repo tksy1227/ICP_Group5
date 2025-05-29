@@ -1,6 +1,7 @@
 import streamlit as st
 import requests
 from datetime import datetime
+import random
 
 st.set_page_config(page_title="PETANNAIK Prototype", layout="wide")
 
@@ -58,6 +59,8 @@ RECOMMEND_API = f"http://127.0.0.1:8000/api/v1/ecommerce/recommendations/user/{U
 PRODUCT_RECOMMEND_API_BASE = "http://127.0.0.1:8000/api/v1/ecommerce/recommendation/product/"
 CHATBOT_API = "http://127.0.0.1:8000/api/v1/messaging/chatbot"
 GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw3_zKeRDeV5yOg0FaZcsTq00KYvaiB7Qsh9RHbwis4NlnE-ddydgX6byYhYV-NNO9D/exec"
+FEEDBACK_API = "http://127.0.0.1:8000/api/v1/ecommerce/recommendation/feedback"
+DUMMY_UUID = "e4a7c3f1-2d9b-486e-90c5-1d6f8b7a5e3c"
 
 # --- Navigation helpers ---
 def go_to_chatbot():
@@ -71,10 +74,14 @@ def go_to_feedback():
 
 def go_to_product_details(product):
     st.session_state.selected_product = product
+    st.session_state.recent_activity = [product]
     st.session_state.page = "product_details"
 
 def go_to_search():
     st.session_state.page = "search"
+
+def go_to_cart():
+    st.session_state.page = "cart"
 
 # --- Custom CSS for styling ---
 st.markdown("""
@@ -143,12 +150,17 @@ if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 if "selected_product" not in st.session_state:
     st.session_state.selected_product = None
+if "cart" not in st.session_state:
+    st.session_state.cart = []
+if "recent_activity" not in st.session_state:
+    st.session_state.recent_activity = []
 
 # --- Sidebar ---
 if st.session_state.page == "chatbot":
     with st.sidebar:
         st.image("images/palmpilot_logo.png", width=300)
         st.button("⬅️ Back to Dashboard", use_container_width=True, on_click=go_to_main)
+        st.button("🛒 Cart", key="cart_btn1", use_container_width=True, on_click=go_to_cart)
         st.button("Search Products", key="search_products_btn1", use_container_width=True, on_click=go_to_search)
         st.button("Feedback", key="feedback_btn_sidebar", help="Go to Feedback", use_container_width=True, on_click=go_to_feedback)
         st.markdown('<div style="color:#fff; font-size:22px; margin-top:10px; font-weight:bold;">🖥️ PalmPilot Chatbot</div>', unsafe_allow_html=True)
@@ -158,6 +170,7 @@ elif st.session_state.page == "feedback":
         st.image("images/petannaik_logo.png", width=300)
         st.markdown('<div class="menu-title">Menu</div>', unsafe_allow_html=True)
         st.button("⬅️ Back to Dashboard", use_container_width=True, on_click=go_to_main)
+        st.button("🛒 Cart", key="cart_btn2", use_container_width=True, on_click=go_to_cart)
         st.button("Search Products", key="search_products_btn2", use_container_width=True, on_click=go_to_search)
         st.button("Chatbot", key="palmpilot_logo_btn", help="Go to Chatbot", use_container_width=True, on_click=go_to_chatbot)
 elif st.session_state.page == "product_details":
@@ -165,6 +178,7 @@ elif st.session_state.page == "product_details":
         st.image("images/petannaik_logo.png", width=300)
         st.markdown('<div class="menu-title">Menu</div>', unsafe_allow_html=True)
         st.button("⬅️ Back to Dashboard", use_container_width=True, on_click=go_to_main)
+        st.button("🛒 Cart", key="cart_btn3", use_container_width=True, on_click=go_to_cart)
         st.button("Search Products", key="search_products_btn3", use_container_width=True, on_click=go_to_search)
         st.button("Chatbot", key="palmpilot_logo_btn", help="Go to Chatbot", use_container_width=True, on_click=go_to_chatbot)
         st.button("Feedback", key="feedback_btn", help="Go to Feedback", use_container_width=True, on_click=go_to_feedback)
@@ -173,6 +187,15 @@ elif st.session_state.page == "search":
         st.image("images/petannaik_logo.png", width=300)
         st.markdown('<div class="menu-title">Menu</div>', unsafe_allow_html=True)
         st.button("⬅️ Back to Dashboard", use_container_width=True, on_click=go_to_main)
+        st.button("🛒 Cart", key="cart_btn4", use_container_width=True, on_click=go_to_cart)
+        st.button("Chatbot", key="palmpilot_logo_btn", help="Go to Chatbot", use_container_width=True, on_click=go_to_chatbot)
+        st.button("Feedback", key="feedback_btn", help="Go to Feedback", use_container_width=True, on_click=go_to_feedback)
+elif st.session_state.page == "cart":
+    with st.sidebar:
+        st.image("images/petannaik_logo.png", width=300)
+        st.markdown('<div class="menu-title">Menu</div>', unsafe_allow_html=True)
+        st.button("⬅️ Back to Dashboard", use_container_width=True, on_click=go_to_main)
+        st.button("Search Products", key="search_products_btn5", use_container_width=True, on_click=go_to_search)
         st.button("Chatbot", key="palmpilot_logo_btn", help="Go to Chatbot", use_container_width=True, on_click=go_to_chatbot)
         st.button("Feedback", key="feedback_btn", help="Go to Feedback", use_container_width=True, on_click=go_to_feedback)
 else:
@@ -180,6 +203,7 @@ else:
         st.image("images/petannaik_logo.png", width=300)
         st.markdown('<div class="menu-title">Menu</div>', unsafe_allow_html=True)
         st.button("Chatbot", key="palmpilot_logo_btn", help="Go to Chatbot", use_container_width=True, on_click=go_to_chatbot)
+        st.button("🛒 Cart", key="cart_btn5", use_container_width=True, on_click=go_to_cart)
         st.button("Search Products", key="search_products_btn4", use_container_width=True, on_click=go_to_search)
         st.button("Feedback", key="feedback_btn", help="Go to Feedback", use_container_width=True, on_click=go_to_feedback)
 
@@ -229,22 +253,81 @@ if st.session_state.page == "main":
                 f'<span class="item-price">Rp {product["price"]:,.0f}</span></div>',
                 unsafe_allow_html=True
             )
-            if st.button("View Details", key=f"details_{product['product_id']}"):
-                go_to_product_details(product)
-                st.rerun()
+            col1, col2, col3 = st.columns([1,1,1])
+            with col1:
+                if st.button("View Details", key=f"details_{product['product_id']}"):
+                    go_to_product_details(product)
+                    # --- Feedback API for viewing details ---
+                    feedback_payload = {
+                        "user_id": str(USER_ID),
+                        "product_id": str(product["product_id"]),
+                        "recommendation_id": DUMMY_UUID,
+                        "action": "clicked"
+                    }
+                    try:
+                        requests.post(
+                            FEEDBACK_API,
+                            json=feedback_payload
+                        )
+                    except Exception:
+                        pass
+                    st.rerun()
+            with col2:
+                if st.button("Add to Cart", key=f"add_cart_{product['product_id']}"):
+                    if product not in st.session_state.cart:
+                        st.session_state.cart.append(product)
+                        st.success(f"Added {product['name']} to cart!")
+                        # --- Feedback API for add to cart ---
+                        feedback_payload = {
+                            "user_id": str(USER_ID),
+                            "product_id": str(product["product_id"]),
+                            "recommendation_id": DUMMY_UUID,
+                            "action": "added_to_cart"
+                        }
+                        try:
+                            requests.post(
+                                FEEDBACK_API,
+                                json=feedback_payload
+                            )
+                        except Exception:
+                            pass
+                    else:
+                        st.info("Already in cart.")
+            with col3:
+                if st.button("Buy Now", key=f"buy_now_{product['product_id']}"):
+                    st.session_state.cart = [product]
+                    st.session_state.page = "cart"
+                    # --- Feedback API for purchase ---
+                    feedback_payload = {
+                        "user_id": str(USER_ID),
+                        "product_id": str(product["product_id"]),
+                        "recommendation_id": DUMMY_UUID,
+                        "action": "purchased"
+                    }
+                    try:
+                        requests.post(
+                            FEEDBACK_API,
+                            json=feedback_payload
+                        )
+                    except Exception:
+                        pass
+                    st.rerun()
 
     with activity_col:
-        st.markdown('<div class="recent-activity"><b>Recent Activity</b><br><br>'
-                    'Pupuk SawitPRO 50kg + Abu Janjang 40kg<br>'
-                    '<span class="item-price">Rp 1.399.999</span><br><br>'
-                    '<b>Content & Specifications</b><br>'
-                    'SawitPRO Fertilizer specs:<br>'
-                    'Nitrogen (N): 11%<br>'
-                    'Phosphorus (P2O5): 5%<br>'
-                    'Potassium (K2O): 12%<br>'
-                    'Microorganisms: Nitrogen-fixing bacteria, etc.<br><br>'
-                    '<button>Add to cart</button> <button>Buy now</button>'
-                    '</div>', unsafe_allow_html=True)
+        html = '<div class="recent-activity"><b>Recent Activity</b><br><br>'
+        if st.session_state.recent_activity:
+            for item in st.session_state.recent_activity:
+                html += (
+                    f'<div style="margin-bottom:10px;">'
+                    f'<span class="item-title">{item["name"]}</span><br>'
+                    f'<span class="item-price">Rp {item["price"]:,.0f}</span>'
+                    f'</div>'
+                )
+        else:
+            html += "No recent activity."
+        html += '</div>'
+        st.markdown(html, unsafe_allow_html=True)
+
 
 # --- Product Details Page ---
 elif st.session_state.page == "product_details":
@@ -257,6 +340,48 @@ elif st.session_state.page == "product_details":
     st.markdown(f'<div class="item-card"><span class="item-title">{product["name"]}</span><br>'
                 f'<span class="item-price">Rp {product["price"]:,.0f}</span></div>',
                 unsafe_allow_html=True)
+
+    col1, col2 = st.columns([1,1])
+    with col1:
+        if st.button("Add to Cart", key=f"add_cart_detail_{product['product_id']}"):
+            if product not in st.session_state.cart:
+                st.session_state.cart.append(product)
+                st.success(f"Added {product['name']} to cart!")
+                # --- Feedback API for add to cart ---
+                feedback_payload = {
+                    "user_id": str(USER_ID),
+                    "product_id": str(product["product_id"]),
+                    "recommendation_id": DUMMY_UUID,
+                    "action": "added_to_cart"
+                }
+                try:
+                    requests.post(
+                        FEEDBACK_API,
+                        json=feedback_payload
+                    )
+                except Exception:
+                    pass
+            else:
+                st.info("Already in cart.")
+    with col2:
+        if st.button("Buy Now", key=f"buy_now_detail_{product['product_id']}"):
+            st.session_state.cart = [product]
+            st.session_state.page = "cart"
+            # --- Feedback API for purchase ---
+            feedback_payload = {
+                "user_id": str(USER_ID),
+                "product_id": str(product["product_id"]),
+                "recommendation_id": DUMMY_UUID,
+                "action": "purchased"
+            }
+            try:
+                requests.post(
+                    FEEDBACK_API,
+                    json=feedback_payload
+                )
+            except Exception:
+                pass
+            st.rerun()
 
     # --- Frequently Bought Together ---
     product_id = product["product_id"]
@@ -281,6 +406,70 @@ elif st.session_state.page == "product_details":
             f'<span class="item-price">Rp {p["price"]:,.0f}</span></div>',
             unsafe_allow_html=True
         )
+    
+    # --- Feedback Form for Product ---
+    st.markdown("#### Leave a Review")
+    with st.form(f"product_feedback_form_{product['product_id']}"):
+        review_text = st.text_area("Your feedback", key=f"feedback_text_{product['product_id']}")
+        submitted = st.form_submit_button("Submit Feedback")
+        if submitted and review_text.strip():
+            feedback_payload = {
+                "user_id": str(USER_ID),
+                "product_id": str(product["product_id"]),
+                "recommendation_id": DUMMY_UUID,
+                "action": "reviewed"
+            }
+            try:
+                response = requests.post(
+                    FEEDBACK_API,
+                    json=feedback_payload
+                )
+                if response.status_code == 200:
+                    st.success("Thank you for your feedback!")
+                else:
+                    st.error("Failed to send feedback.")
+            except Exception as e:
+                st.error(f"Error: {e}")
+
+# --- Cart Page ---
+elif st.session_state.page == "cart":
+    st.title("🛒 Your Cart")
+    if not st.session_state.cart:
+        st.info("Your cart is empty.")
+    else:
+        if st.button("🗑️ Clear Cart"):
+            st.session_state.cart = []
+            st.success("Cart cleared!")
+            st.rerun()
+
+        total = 0
+        for item in st.session_state.cart:
+            st.markdown(
+                f'<div class="item-card"><span class="item-title">{item["name"]}</span><br>'
+                f'<span class="item-price">Rp {item["price"]:,.0f}</span></div>',
+                unsafe_allow_html=True
+            )
+            if st.button("Remove", key=f"remove_{item['product_id']}"):
+                st.session_state.cart = [i for i in st.session_state.cart if i["product_id"] != item["product_id"]]
+                st.success(f"Removed {item['name']} from cart.")
+                st.rerun()
+            total += item["price"]
+        st.markdown(f"### Total: Rp {total:,.0f}")
+
+        if st.button("Checkout"):
+            st.success("Checkout successful! (Demo only)")
+            st.session_state.cart = []
+
+    # Show 2-3 recommended products (random for demo)
+    st.markdown("#### You might also like:")
+    available_recs = [p for p in product_data if {"product_id": p[0], "name": p[1], "price": p[2]} not in st.session_state.cart]
+    recs = random.sample(available_recs, k=min(3, len(available_recs)))
+    for pid, name, price in recs:
+        st.markdown(
+            f'<div class="item-card"><span class="item-title">{name}</span><br>'
+            f'<span class="item-price">Rp {price:,.0f}</span></div>',
+            unsafe_allow_html=True
+        )
 
 # --- Search Products Page ---
 elif st.session_state.page == "search":
@@ -300,14 +489,76 @@ elif st.session_state.page == "search":
             f'<span style="font-size:12px;color:#888;">ID: {product["product_id"]}</span></div>',
             unsafe_allow_html=True
         )
-        if st.button("View Details", key=f"search_details_{product['product_id']}"):
-            st.session_state.selected_product = {
-                "product_id": product["product_id"],
-                "name": product["name"],
-                "price": product["price"]
-            }
-            st.session_state.page = "product_details"
-            st.rerun()
+        col1, col2, col3 = st.columns([1,1,1])
+        with col1:
+            if st.button("View Details", key=f"search_details_{product['product_id']}"):
+                st.session_state.selected_product = {
+                    "product_id": product["product_id"],
+                    "name": product["name"],
+                    "price": product["price"]
+                }
+                # --- Update recent activity ---
+                st.session_state.recent_activity = [{
+                    "product_id": product["product_id"],
+                    "name": product["name"],
+                    "price": product["price"]
+                }]
+                st.session_state.page = "product_details"
+                # --- Feedback API for viewing details ---
+                feedback_payload = {
+                    "user_id": str(USER_ID),
+                    "product_id": str(product["product_id"]),
+                    "recommendation_id": DUMMY_UUID,
+                    "action": "clicked"
+                }
+                try:
+                    requests.post(
+                        FEEDBACK_API,
+                        json=feedback_payload
+                    )
+                except Exception:
+                    pass
+                st.rerun()
+        with col2:
+            if st.button("Add to Cart", key=f"search_add_cart_{product['product_id']}"):
+                if product not in st.session_state.cart:
+                    st.session_state.cart.append(product)
+                    st.success(f"Added {product['name']} to cart!")
+                    # --- Feedback API for add to cart ---
+                    feedback_payload = {
+                        "user_id": str(USER_ID),
+                        "product_id": str(product["product_id"]),
+                        "recommendation_id": DUMMY_UUID,
+                        "action": "added_to_cart"
+                    }
+                    try:
+                        requests.post(
+                            FEEDBACK_API,
+                            json=feedback_payload
+                        )
+                    except Exception:
+                        pass
+                else:
+                    st.info("Already in cart.")
+        with col3:
+            if st.button("Buy Now", key=f"search_buy_now_{product['product_id']}"):
+                st.session_state.cart = [product]
+                st.session_state.page = "cart"
+                # --- Feedback API for purchase ---
+                feedback_payload = {
+                    "user_id": str(USER_ID),
+                    "product_id": str(product["product_id"]),
+                    "recommendation_id": DUMMY_UUID,
+                    "action": "purchased"
+                }
+                try:
+                    requests.post(
+                        FEEDBACK_API,
+                        json=feedback_payload
+                    )
+                except Exception:
+                    pass
+                st.rerun()
 
 # --- Chatbot Page ---
 elif st.session_state.page == "chatbot":
@@ -349,6 +600,30 @@ elif st.session_state.page == "chatbot":
                 st.session_state["chat_history"].append(f"🧑‍💻 {user_message}")
                 st.session_state["chat_history"].append("🤖 Sorry, there was an error connecting to the chatbot API.")
             st.rerun()
+
+    # Display feedback form for chatbot
+    st.markdown("#### Feedback for Chatbot")
+    with st.form("chatbot_feedback_form"):
+        chatbot_feedback = st.text_area("Your feedback about the chatbot", key="chatbot_feedback_text")
+        submitted = st.form_submit_button("Submit Chatbot Feedback")
+        if submitted and chatbot_feedback.strip():
+            feedback_payload = {
+                "user_id": str(USER_ID),
+                "product_id": "",
+                "recommendation_id": DUMMY_UUID,
+                "action": "reviewed"
+            }
+            try:
+                response = requests.post(
+                    FEEDBACK_API,
+                    json=feedback_payload
+                )
+                if response.status_code == 200:
+                    st.success("Thank you for your feedback!")
+                else:
+                    st.error("Failed to send feedback.")
+            except Exception as e:
+                st.error(f"Error: {e}")
 
 # --- Feedback Page ---
 elif st.session_state.page == "feedback":
