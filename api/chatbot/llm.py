@@ -1,24 +1,26 @@
-from langchain.llms.base import LLM
-import replicate
 import os
+from langchain.llms.base import LLM
+from llama_cpp import Llama
 
-class ReplicateLlamaLLM(LLM):
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+MODEL_PATH = os.path.join(REPO_ROOT, "api", "models", "llama-2-7b-chat.Q4_K_M.gguf")
+
+class LocalLlamaLLM(LLM):
+    class Config:
+        arbitrary_types_allowed = True  # <-- This line is important!
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._llm = Llama(model_path=MODEL_PATH, n_ctx=2048)
+
     def _call(self, prompt, **kwargs):
-        api_token = os.environ.get("REPLICATE_API_TOKEN")
-        if not api_token:
-            raise ValueError("REPLICATE_API_TOKEN environment variable is not set.")
-        replicate.Client(api_token=api_token)
-        output = replicate.run(
-            "meta/a16z-infra/llama7b-v2-chat:4f0a4744c7295c024a1de15e1a63c880d3da035fa1f49bfd344fe076074c8eea",
-            input={
-                "prompt": prompt,
-                "max_new_tokens": 512,
-                "temperature": 0.7,
-                "top_p": 0.95
-            }
+        output = self._llm(
+            prompt,
+            max_tokens=512,
+            stop=["<|end_of_text|>"]
         )
-        return "".join(list(output))
+        return output["choices"][0]["text"]
 
     @property
     def _llm_type(self):
-        return "replicate-llama"
+        return "local-llama"

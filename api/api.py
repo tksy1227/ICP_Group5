@@ -24,8 +24,7 @@ from recsys.recommendation import get_user_recommendations, get_product_recommen
 from chatbot.vector_store import get_retriever
 from langchain.chains import RetrievalQA
 from langchain.llms.base import LLM
-from chatbot.llm import ReplicateLlamaLLM  # <-- CHANGED
-
+from chatbot.llm import LocalLlamaLLM
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -41,7 +40,7 @@ retriever = get_retriever()
 
 # Construct the RetrievalQA chain using retriever + Replicate LLM
 qa_chain = RetrievalQA.from_chain_type(
-    llm=ReplicateLlamaLLM(),  # <-- CHANGED
+    llm=LocalLlamaLLM(),  
     chain_type="stuff",
     retriever=retriever
 )
