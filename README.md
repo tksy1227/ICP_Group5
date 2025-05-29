@@ -9,6 +9,7 @@ This project allows you to run a local LLM-based chatbot using FastAPI and Strea
 
 ## 📦 Prerequisites
 
+The instructions are also found in the repository (`instructions` word doc).
 Before starting, make sure you have:
 
 - Python 3.8 or newer installed
