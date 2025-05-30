@@ -35,14 +35,14 @@ Before starting, make sure you have:
 
 ### 🖥️ 2. Setting Up the Virtual Environment
 
-1. Open a new PowerShell terminal in VSCode.
-2. Create a virtual environment: `python -m venv venv`
-3. Activate the virtual environment: `venv\Scripts\activate`
-4. Install the required packages: `pip install -r requirements.txt`
+1. Open this Repository locally in VSCode (by cloning it!)
+2. Open a new PowerShell terminal in VSCode.
+4. Activate the virtual environment: `venv\Scripts\activate` (if venv does not exist, run: `python -m venv venv`)
+5. Install the required packages: `pip install -r requirements.txt`
 ![image](https://github.com/user-attachments/assets/53e8490e-c2a1-4cf3-a0bc-41c37bd10bdf)
 
-5. Navigating to the API folder: `cd api`
-6. Run the API server: `uvicorn api:app --reload` 
+6. Navigating to the API folder: `cd api`
+7. Run the API server: `uvicorn api:app --reload` 
 ![image](https://github.com/user-attachments/assets/d89d72ce-a38b-4138-bde5-5712537b6d2c)
 
 If you get the following output, the API is ready!
