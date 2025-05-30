@@ -63,7 +63,7 @@ If you encounter build errors during installation:
 1. Open a new PowerShell terminal in VSCode.
 2. Run the StreamLit app: `streamlit run streamlit_app.py`
 3. Click the local URL (shown in terminal) to open the Streamlit UI in your browser.
-4. Use the following API token when prompted in the StreamLit UI: `r8_9uorfeWDyHorXeaVeuLrE6jiB6ihaiN3o5cdr`
+4. Use the following API token when prompted in the StreamLit UI (Found in `instructions` word doc); Or use your own API Replicate token!
 5. Paste it into the credential folder and press Enter.
 
 ### 4. Clean-Ups (Optional)
