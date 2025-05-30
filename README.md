@@ -1,6 +1,8 @@
 # ICP_Group5
 Repo for ICP Group 5
 
+Link to StreamLit (Prototype): http://192.168.1.177:8501/
+
 # 🧠 Local LLM Chatbot (FastAPI + Streamlit)
 
 This project allows you to run a local LLM-based chatbot using FastAPI and Streamlit.
