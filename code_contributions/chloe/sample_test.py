@@ -1,6 +1,8 @@
 import streamlit as st
 from llama_cpp import Llama
 
+# THIS IS A SAMPLE TEST FILE FOR STREAMLIT AND LLAMA CPP INTEGRATION
+
 # Update this path if you move the model file or run from a different folder
 MODEL_PATH = "../models/llama-3-8b-instruct.Q4_K_M.gguf"
 
