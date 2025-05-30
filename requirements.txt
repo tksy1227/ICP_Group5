@@ -10,3 +10,5 @@ langchain
 llama-cpp-python
 langchain-community
 replicate
+sqlalchemy
+psycopg2
