@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/ICP_Group5/reactapp/src/Login.js/static/css/main.e6c13ad2.css",
-    "main.js": "/ICP_Group5/reactapp/src/Login.js/static/js/main.de69ccd9.js",
-    "static/js/453.785134cd.chunk.js": "/ICP_Group5/reactapp/src/Login.js/static/js/453.785134cd.chunk.js",
-    "index.html": "/ICP_Group5/reactapp/src/Login.js/index.html",
-    "main.e6c13ad2.css.map": "/ICP_Group5/reactapp/src/Login.js/static/css/main.e6c13ad2.css.map",
-    "main.de69ccd9.js.map": "/ICP_Group5/reactapp/src/Login.js/static/js/main.de69ccd9.js.map",
-    "453.785134cd.chunk.js.map": "/ICP_Group5/reactapp/src/Login.js/static/js/453.785134cd.chunk.js.map"
+    "main.css": "/ICP_Group5/reactapp/src/static/css/main.e6c13ad2.css",
+    "main.js": "/ICP_Group5/reactapp/src/static/js/main.b7ebdcb3.js",
+    "static/js/453.785134cd.chunk.js": "/ICP_Group5/reactapp/src/static/js/453.785134cd.chunk.js",
+    "index.html": "/ICP_Group5/reactapp/src/index.html",
+    "main.e6c13ad2.css.map": "/ICP_Group5/reactapp/src/static/css/main.e6c13ad2.css.map",
+    "main.b7ebdcb3.js.map": "/ICP_Group5/reactapp/src/static/js/main.b7ebdcb3.js.map",
+    "453.785134cd.chunk.js.map": "/ICP_Group5/reactapp/src/static/js/453.785134cd.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.e6c13ad2.css",
-    "static/js/main.de69ccd9.js"
+    "static/js/main.b7ebdcb3.js"
   ]
 }
