@@ -1,0 +1,29 @@
+name: Build and Deploy React App
+
+on:
+  push:
+    branches:
+      - main  # or your default branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Use Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+
+    - name: Install dependencies
+      working-directory: ./reactapp
+      run: npm install
+
+    - name: Build app
+      working-directory: ./reactapp
+      run: npm run build
+
+    # Add your deploy step here, e.g., deploy to gh-pages branch
