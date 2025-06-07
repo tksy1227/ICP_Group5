@@ -1,50 +1,62 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
-const AuthContext = createContext(null);
+const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}
+
+export function AuthProvider({ children }) {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState(null);
 
+  // Check for existing login state on component mount
   useEffect(() => {
-    // Check if user is logged in on mount
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    const savedLoginState = localStorage.getItem('isLoggedIn');
+    const savedUser = localStorage.getItem('user');
+    
+    console.log('AuthContext - Loading saved state:', { savedLoginState, savedUser });
+    
+    if (savedLoginState === 'true' && savedUser) {
+      setIsLoggedIn(true);
+      setUser(JSON.parse(savedUser));
+      console.log('AuthContext - Restored login state');
     }
   }, []);
 
   const login = (userData) => {
-    localStorage.setItem('user', JSON.stringify(userData));
+    console.log('AuthContext - Login called with:', userData);
+    setIsLoggedIn(true);
     setUser(userData);
+    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('user', JSON.stringify(userData));
+    console.log('AuthContext - Login state set to true');
   };
 
   const logout = () => {
-    localStorage.removeItem('user');
+    console.log('AuthContext - Logout called');
+    setIsLoggedIn(false);
     setUser(null);
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('user');
   };
 
-  const register = (userData) => {
-    // Get existing users or initialize empty array
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    
-    // Check if email already exists
-    if (users.some(user => user.email === userData.email)) {
-      throw new Error('Email already registered');
-    }
-
-    // Add new user
-    users.push(userData);
-    localStorage.setItem('users', JSON.stringify(users));
-
-    // Log in the new user
-    login(userData);
+  const value = {
+    isLoggedIn,
+    user,
+    login,
+    logout
   };
+
+  console.log('AuthContext - Current state:', { isLoggedIn, user: user?.email });
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, register }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => useContext(AuthContext);
+}

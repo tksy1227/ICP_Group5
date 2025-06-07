@@ -1,7 +1,7 @@
 import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProductProvider } from './contexts/ProductContext';
-import { LanguageProvider } from './contexts/LanguageContext';
+import { LanguageProvider } from './contexts/LanguageProvider';
 import Login from './components/Login';
 import Register from './components/Register';
 import Home from './components/Home';
@@ -21,7 +21,7 @@ function App() {
                 <Route path="/home" element={<Home />} />
                 <Route path="/chatbot" element={<Chatbot />} />
               </Route>
-              <Route path="/" element={<Login />} />
+              <Route path="/" element={<Home />} />
             </Routes>
           </Router>
         </LanguageProvider>
