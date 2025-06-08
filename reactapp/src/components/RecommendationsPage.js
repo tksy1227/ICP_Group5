@@ -20,6 +20,11 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import petanNaikLogo from '../images/petannaik_logo.png';
 import usericon from '../images/usericon.png';
 
+// Import product images from ProductContext.js (same as Home.js for consistency)
+import sawitproFertilizer50kgPlus40kgBunchAshImage from '../images/products/SawitPRO_Fertilizer_50kg_+_40kg_Bunch_Ash.avif';
+import siBrondolSawitproTshirtSizeXlImage from '../images/products/Si_Brondol_SawitPRO_T-shirt_size_XL.avif';
+import furadan3gr2kgImage from '../images/products/Furadan_3GR_2Kg.avif';
+
 // Placeholder data for recommendations - replace with actual logic later
 const sampleRecommendations = [
   {
@@ -51,30 +56,31 @@ const sampleRecommendations = [
 // Replicating recommendedProducts data from Home.js
 const recommendedProductsData = [
   {
-    product_id: "0bd2430a-6613-442a-9d5a-11d64cb095ae", // Using actual product_id
-    name: 'Premium Palm Oil NPK Fertilizer',
-    description: 'Specialized palm oil fertilizer with balanced NPK content',
-    price: 'Rp 125.000', // Keep as string if parsePrice is used, or convert to number
-    image: 'https://images.unsplash.com/photo-1635188557504-7cc236e3d0e5?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-    rating: 4.8
+    product_id: "sawitpro-fertilizer-bunch-ash",
+    name: "SawitPRO Fertilizer 50kg + 40kg Bunch Ash",
+    description: "High quality fertilizer with bunch ash.",
+    price: 'Rp 315.934',
+    image: sawitproFertilizer50kgPlus40kgBunchAshImage,
+    rating: 4.5
   },
   {
-    product_id: "1033503b-8faa-4d5c-97c2-50bb19fbb897", // Using actual product_id
-    name: 'Organic Caterpillar Pesticide',
-    description: 'Eco-friendly pesticide for caterpillar pest control',
+    product_id: "sibrondol-tshirt-xl",
+    name: "Si Brondol SawitPRO T-shirt size XL",
+    description: "Comfortable T-shirt from SawitPRO.",
     price: 'Rp 85.000',
-    image: 'https://images.unsplash.com/photo-1620453325704-70e446e3c4c0?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-    rating: 4.6
+    image: siBrondolSawitproTshirtSizeXlImage,
+    rating: 4.3
   },
   {
-    product_id: "0bd2430a-6613-442a-9d5a-11d64cb095ae", // Placeholder, replace with another valid ID
-    name: 'Palm Fruit Harvesting Tool',
-    description: 'Ergonomic harvesting tool to improve efficiency',
-    price: 'Rp 450.000',
-    image: 'https://images.unsplash.com/photo-1598887142487-3c854d51d2c7?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-    rating: 4.9
+    product_id: "furadan-3gr-2kg",
+    name: "Furadan 3GR 2Kg",
+    description: "Effective insecticide.",
+    price: 'Rp 54.503',
+    image: furadan3gr2kgImage,
+    rating: 4.6
   }
 ];
+
 const RecommendationsPage = () => {
   const navigate = useNavigate();
   const { isLoggedIn, user, logout } = useAuth();

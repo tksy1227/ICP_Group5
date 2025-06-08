@@ -41,6 +41,14 @@ import { useAuth } from '../contexts/AuthContext';
 // Import logos like in Chatbot.js
 import petanNaikLogo from '../images/petannaik_logo.png';
 import usericon from '../images/usericon.png'; // Assuming this is the intended profile icon
+// Import product images from ProductContext.js
+import sawitproFertilizer50kgPlus40kgBunchAshImage from '../images/products/SawitPRO_Fertilizer_50kg_+_40kg_Bunch_Ash.avif';
+import siBrondolSawitproTshirtSizeXlImage from '../images/products/Si_Brondol_SawitPRO_T-shirt_size_XL.avif';
+import furadan3gr2kgImage from '../images/products/Furadan_3GR_2Kg.avif';
+import garlon670Ec1LiterImage from '../images/products/Garlon_670_EC_1Liter.avif';
+import garlon670Ec100mlImage from '../images/products/Garlon_670_EC_100ml.avif';
+import bombUp520Sl20LitersImage from '../images/products/Bomb_Up_520_SL_20Liters.avif';
+
 
 function Home() {
   const navigate = useNavigate();
@@ -82,56 +90,54 @@ function Home() {
   
   const recommendedProducts = [
     {
-      product_id: "0bd2430a-6613-442a-9d5a-11d64cb095ae", // Using actual product_id from ProductContext
-      name: 'Premium Palm Oil NPK Fertilizer',
-      description: 'Specialized palm oil fertilizer with balanced NPK content',
-      price: 'Rp 125.000',
-      image: 'https://images.unsplash.com/photo-1635188557504-7cc236e3d0e5?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-      rating: 4.8,
-      // Add other fields if your addToCart expects them, or ensure they are added before calling addToCart
+      product_id: "sawitpro-fertilizer-bunch-ash",
+      name: "SawitPRO Fertilizer 50kg + 40kg Bunch Ash",
+      description: "High quality fertilizer with bunch ash.",
+      price: 'Rp 315.934',
+      image: sawitproFertilizer50kgPlus40kgBunchAshImage,
+      rating: 4.5
     },
     {
-      product_id: "1033503b-8faa-4d5c-97c2-50bb19fbb897", // Using actual product_id from ProductContext
-      name: 'Organic Caterpillar Pesticide',
-      description: 'Eco-friendly pesticide for caterpillar pest control',
+      product_id: "sibrondol-tshirt-xl",
+      name: "Si Brondol SawitPRO T-shirt size XL",
+      description: "Comfortable T-shirt from SawitPRO.",
       price: 'Rp 85.000',
-      image: 'https://images.unsplash.com/photo-1620453325704-70e446e3c4c0?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-      rating: 4.6
+      image: siBrondolSawitproTshirtSizeXlImage,
+      rating: 4.3
     },
     {
-      // Assuming a third product_id exists in your ProductContext.PRODUCT_DATA or use one of the above for demo
-      product_id: "0bd2430a-6613-442a-9d5a-11d64cb095ae", // Placeholder, replace with another valid ID
-      name: 'Palm Fruit Harvesting Tool',
-      description: 'Ergonomic harvesting tool to improve efficiency',
-      price: 'Rp 450.000',
-      image: 'https://images.unsplash.com/photo-1598887142487-3c854d51d2c7?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-      rating: 4.9
+      product_id: "furadan-3gr-2kg",
+      name: "Furadan 3GR 2Kg",
+      description: "Effective insecticide.",
+      price: 'Rp 54.503',
+      image: furadan3gr2kgImage,
+      rating: 4.6
     }
   ];
   const popularProducts = [
     {
-      product_id: "1033503b-8faa-4d5c-97c2-50bb19fbb897", // Placeholder, replace with another valid ID
-      name: 'NPK Fertilizer 15-15-15',
-      description: 'NPK fertilizer with balanced composition for optimal palm oil growth',
-      price: 'Rp 150.000',
-      image: 'https://images.unsplash.com/photo-1635188557504-7cc236e3d0e5?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-      rating: 4.8
+      product_id: "garlon-670ec-1l",
+      name: "Garlon 670 EC - 1 Liter",
+      description: "Herbicide for broad-leaved weeds.",
+      price: 'Rp 299.606',
+      image: garlon670Ec1LiterImage,
+      rating: 4.7
     },
     {
-      product_id: "0bd2430a-6613-442a-9d5a-11d64cb095ae", // Placeholder, replace with another valid ID
-      name: 'Systemic Fungicide',
-      description: 'Fungicide to prevent and treat fungal diseases in palm oil',
-      price: 'Rp 85.000',
-      image: 'https://images.unsplash.com/photo-1620453325704-70e446e3c4c0?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-      rating: 4.6
+      product_id: "garlon-670ec-100ml",
+      name: "Garlon 670 EC - 100ml",
+      description: "Herbicide for broad-leaved weeds.",
+      price: 'Rp 49.350',
+      image: garlon670Ec100mlImage,
+      rating: 4.7
     },
     {
-      product_id: "1033503b-8faa-4d5c-97c2-50bb19fbb897", // Placeholder, replace with another valid ID
-      name: 'High-Quality Machete',
-      description: 'Sharp and durable machete for garden maintenance',
-      price: 'Rp 125.000',
-      image: 'https://images.unsplash.com/photo-1598887142487-3c854d51d2c7?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-      rating: 4.9
+      product_id: "bombup-520sl-20l",
+      name: "Bomb Up 520 SL - 20 Liters",
+      description: "Systemic herbicide.",
+      price: 'Rp 1.021.558',
+      image: bombUp520Sl20LitersImage,
+      rating: 4.5
     }
   ];
 

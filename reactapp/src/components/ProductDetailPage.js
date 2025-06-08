@@ -43,7 +43,7 @@ const ProductDetailPage = () => {
       // Simulate fetching richer details if they were separate
       setProduct({
         ...foundProduct,
-        image: `https://via.placeholder.com/600x400/22c55e/ffffff?text=${encodeURIComponent(foundProduct.name.substring(0,20))}`,
+        // image: `https://via.placeholder.com/600x400/22c55e/ffffff?text=${encodeURIComponent(foundProduct.name.substring(0,20))}`, // Keep original image from context
         // Use description and rating from ProductContext if available, otherwise fallback
         description: foundProduct.description || `Detailed description for ${foundProduct.name}. This product is known for its quality and effectiveness in palm oil farming.`,
         rating: foundProduct.rating || 4.5, // Default rating
@@ -58,7 +58,7 @@ const ProductDetailPage = () => {
 
       setFrequentlyBought(otherProducts.map(p => ({
         ...p,
-        image: `https://via.placeholder.com/300x200/22c55e/ffffff?text=${encodeURIComponent(p.name.substring(0,15))}`,
+        // image: `https://via.placeholder.com/300x200/22c55e/ffffff?text=${encodeURIComponent(p.name.substring(0,15))}`, // Keep original image from context
         rating: p.rating || (Math.random() * (5 - 3.5) + 3.5).toFixed(1), // Random rating
       })));
     }

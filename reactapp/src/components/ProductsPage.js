@@ -182,16 +182,16 @@ const ProductsPage = () => {
 
         {/* Product Grid */}
         {filteredProducts.length > 0 ? (
-          <Grid container spacing={3}>
+          <Grid container spacing={3} justifyContent="center"> {/* Added justifyContent */}
             {filteredProducts.map((product) => {
               const cartItem = cartItems.find(item => item.product_id === product.product_id); // Assuming product_id from context
               return (
                 <Grid item xs={12} sm={6} md={4} lg={3} key={product.product_id}>
                   <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                    <CardMedia // Placeholder for product image
+                    <CardMedia
                       component="img"
                       height="160"
-                      image={`https://via.placeholder.com/300x200/22c55e/ffffff?text=${encodeURIComponent(product.name.substring(0,15))}`} // Placeholder image
+                      image={product.image} // Use actual product image
                       alt={product.name}
                     />
                     <CardContent sx={{ flexGrow: 1 }}>
@@ -215,9 +215,11 @@ const ProductsPage = () => {
                         {formatCurrency(product.price)}
                       </Typography>
                     </CardContent>
-                    <CardActions sx={{ p: 2, pt: 0 }}>
-                      {cartItem ? (
-                         <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                    <CardActions sx={{ p: 2, pt: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 'auto' }}> {/* Ensure actions are at bottom and aligned */}
+                      {/* Left part: Add to Cart button OR Quantity Controls */}
+                      <Box sx={{ flexGrow: 1, mr: 1, display: 'flex', justifyContent: cartItem ? 'center' : 'flex-start' }}> {/* Container for the main action */}
+                        {cartItem ? (
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             <IconButton onClick={() => updateQuantity(product.product_id, cartItem.quantity - 1)} size="small" sx={{ color: '#166534' }}>
                                 <RemoveCircleOutlineIcon />
                             </IconButton>
@@ -225,29 +227,35 @@ const ProductsPage = () => {
                             <IconButton onClick={() => updateQuantity(product.product_id, cartItem.quantity + 1)} size="small" sx={{ color: '#166534' }}>
                                 <AddCircleOutlineIcon />
                             </IconButton>
-                        </Box>
-                      ) : (
-                        <Button
-                          fullWidth
-                          variant="contained"
-                          startIcon={<ShoppingCartIcon />}
-                          onClick={() => addToCart({ ...product, id: product.product_id, price: parsePrice(product.price)})} 
-                          sx={{ bgcolor: '#22c55e', '&:hover': { bgcolor: '#16a34a' } }}
-                        >
-                          Add to Cart
-                        </Button>
-                      )}
-                       {/* Assuming you want a view button here too */}
-                      {!cartItem && ( // Only show if not in cart, or adjust logic
-                        <IconButton sx={{ bgcolor: '#f0fdf4', color: '#22c55e', '&:hover': { bgcolor: '#dcfce7' }, ml: cartItem ? 0 : 1 }} 
-                                    onClick={() => {
-                                      navigate(`/products/${product.product_id}`);
-                                      // Store current product for frequently bought together logic
-                                      localStorage.setItem('currentProduct', JSON.stringify(product));
-                                    }} aria-label="view product">
-                            <VisibilityIcon />
-                        </IconButton>
-                      )}
+                          </Box>
+                        ) : (
+                          <Button
+                            fullWidth // Make button take full width of its container
+                            variant="contained"
+                            startIcon={<ShoppingCartIcon />}
+                            onClick={() => addToCart({ ...product, id: product.product_id, price: parsePrice(product.price)})} 
+                            sx={{ bgcolor: '#22c55e', '&:hover': { bgcolor: '#16a34a' } }}
+                          >
+                            Add to Cart
+                          </Button>
+                        )}
+                      </Box>
+
+                      {/* Right part: View Icon Button - Always visible */}
+                      <IconButton 
+                        sx={{ 
+                          bgcolor: '#f0fdf4', 
+                          color: '#22c55e', 
+                          '&:hover': { bgcolor: '#dcfce7' },
+                          flexShrink: 0 // Prevent icon button from shrinking
+                        }} 
+                        onClick={() => {
+                          navigate(`/products/${product.product_id}`);
+                          localStorage.setItem('currentProduct', JSON.stringify(product));
+                        }} 
+                        aria-label="view product">
+                          <VisibilityIcon />
+                      </IconButton>
                     </CardActions>
                   </Card>
                 </Grid>

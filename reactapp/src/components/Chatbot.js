@@ -19,6 +19,7 @@ import {
     Grid, // Added for Footer
     ListSubheader, // Added for chat history sections
     Divider, // Added for separating sections in drawer
+    Chip, // Added for displaying selected file
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SendIcon from '@mui/icons-material/Send';
@@ -32,6 +33,8 @@ import HomeIcon from '@mui/icons-material/Home';
 import EmailIcon from '@mui/icons-material/Email'; // Added for Footer
 import PhoneIcon from '@mui/icons-material/Phone'; // Added for Footer
 import LocationOnIcon from '@mui/icons-material/LocationOn'; // Added for Footer
+import AttachFileIcon from '@mui/icons-material/AttachFile'; // For file uploads
+import MicIcon from '@mui/icons-material/Mic'; // For voice messages
 import { useLanguage, languages } from '../contexts/LanguageProvider';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext'; // Import useCart
@@ -54,6 +57,8 @@ const Chatbot = () => {
     const [activeChatSessionId, setActiveChatSessionId] = useState(null);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
+    const [selectedFile, setSelectedFile] = useState(null); // State for the selected file
+    const fileInputRef = useRef(null); // Ref for the file input
     const messagesEndRef = useRef(null);
     const { language, setLanguage, translations } = useLanguage();
     const { isLoggedIn, user, logout } = useAuth(); // Add logout
@@ -170,13 +175,14 @@ const Chatbot = () => {
                 session.id === activeChatSessionId
                     ? { ...session, messages: [] }
                     : session
-            )
+            ),
+        setSelectedFile(null) // Clear selected file as well
         );
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!input.trim()) return;
+        if (!input.trim() && !selectedFile) return; // Allow sending if only a file is selected
 
         let currentSessionId = activeChatSessionId;
         let isNewSessionJustCreated = false;
@@ -207,6 +213,12 @@ const Chatbot = () => {
 
         const userMessage = input;
         setInput('');
+        
+        if (selectedFile) {
+            // In a real app, you'd handle the file upload here.
+            console.log('File to be sent with message:', selectedFile.name);
+            // For now, we'll just log it and clear it after message processing.
+        }
 
         setChatSessions(prevSessions =>
             prevSessions.map(session => {
@@ -250,6 +262,7 @@ const Chatbot = () => {
             setChatSessions(prev => prev.map(s => s.id === currentSessionId ? {...s, messages: [...s.messages, {type: 'bot', text: translations.chatbot.connectionError }]} : s));
         } finally {
             setLoading(false);
+            setSelectedFile(null); // Clear selected file after submission attempt
         }
     };
 
@@ -257,6 +270,20 @@ const Chatbot = () => {
 
     const handleLanguageChange = (event) => {
         setLanguage(event.target.value);
+    };
+
+    const handleFileSelect = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            setSelectedFile(file);
+        }
+        // Reset the file input so the same file can be selected again if removed
+        if (fileInputRef.current) {
+            fileInputRef.current.value = null;
+        }
+    };
+    const handleRemoveSelectedFile = () => {
+        setSelectedFile(null);
     };
 
     return (
@@ -401,7 +428,22 @@ const Chatbot = () => {
                     </Box>
                     
                     {/* Navigation Menu */}
-                    <Box sx={{ flexGrow: 1 }} /> {/* This Box now just takes up space */}
+                    <Box sx={{ 
+                        flexGrow: 1, 
+                        display: { xs: 'none', md: 'flex' }, 
+                        justifyContent: 'center' 
+                    }}>
+                        {menuItems.map((item) => (
+                            <Button 
+                                key={item.text}
+                                color="inherit"
+                                onClick={() => navigate(item.link)}
+                                sx={{ mx: 1, fontWeight: 'medium' }}
+                            >
+                                {item.text}
+                            </Button>
+                        ))}
+                    </Box>
                     
                     {/* Right Side - Language, Login, Cart */}
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -686,38 +728,68 @@ const Chatbot = () => {
                 </Paper>
 
                 {/* Chat Input */}
-                <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', gap: 2 }}>
-                    <TextField
-                        fullWidth
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        placeholder={translations.chatbot.placeholder}
-                        disabled={loading}
-                        sx={{
-                            bgcolor: 'white',
-                            '& .MuiOutlinedInput-notchedOutline': {
-                                borderColor: '#22c55e',
-                            },
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                                borderColor: '#16a34a',
-                            },
-                        }}
-                    />
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        endIcon={<SendIcon />}
-                        disabled={loading || !input.trim()}
-                        sx={{
-                            bgcolor: '#22c55e',
-                            color: '#fff',
-                            '&:hover': {
-                                bgcolor: '#16a34a'
+                <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 2 }}>
+                    {selectedFile && (
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 1 }}>
+                            <Chip
+                                label={selectedFile.name}
+                                onDelete={handleRemoveSelectedFile}
+                                size="small"
+                                sx={{ 
+                                    maxWidth: 'calc(100% - 16px)', // Ensure chip doesn't overflow container
+                                    overflow: 'hidden', 
+                                    textOverflow: 'ellipsis',
+                                    bgcolor: '#e0f2f7', // Light cyan background for the chip
+                                    color: '#007bff' // Blue text for the chip
+                                }}
+                            />
+                        </Box>
+                    )}
+                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                        {/* File Upload Button */}
+                        <IconButton 
+                            color="primary" 
+                            aria-label="upload file" 
+                            component="label" // Allows input to be nested
+                            disabled={loading}
+                            sx={{color: '#166534', p: 1}}
+                        >
+                            <input type="file" hidden onChange={handleFileSelect} ref={fileInputRef} />
+                            <AttachFileIcon />
+                        </IconButton>
+
+                        {/* Voice Message Button */}
+                        <IconButton 
+                            color="primary" 
+                            aria-label="record voice message" 
+                            onClick={() => console.log('Record voice clicked')} // Placeholder
+                            disabled={loading}
+                            sx={{color: '#166534', p: 1}}
+                        >
+                            <MicIcon />
+                        </IconButton>
+                        <TextField
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            placeholder={translations.chatbot.placeholder}
+                            disabled={loading}
+                            sx={{
+                                flexGrow: 1, // Allows TextField to take available space
+                                bgcolor: 'white',
+                                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#22c55e' },
+                                '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#16a34a' },
                             }
-                        }}
-                    >
-                        {translations.chatbot.send}
-                    </Button>
+                            } />
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            endIcon={<SendIcon />}
+                            disabled={loading || (!input.trim() && !selectedFile)}
+                            sx={{ bgcolor: '#22c55e', color: '#fff', '&:hover': { bgcolor: '#16a34a' } }}
+                        >
+                            {translations.chatbot.send}
+                        </Button>
+                    </Box>
                 </Box>
                 </Container>
                 {/* Footer - Now part of the shifting main content */}
@@ -749,7 +821,7 @@ const Chatbot = () => {
                             <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>Contact</Typography>
                             <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}><EmailIcon sx={{ mr: 1, fontSize: 18 }} /><Typography variant="body2">info@petannaik.com</Typography></Box>
                             <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}><PhoneIcon sx={{ mr: 1, fontSize: 18 }} /><Typography variant="body2">+62 21 1234 5678</Typography></Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}><LocationOnIcon sx={{ mr: 1, fontSize: 18 }} /><Typography variant="body2">Jakarta, Indonesia</Typography></Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}><LocationOnIcon sx={{ mr: 1, fontSize: 18 }} /><Typography variant="body2">Jakarta, Indonesia</Typography></Box> {/* Ensure this line's sx prop is typed with standard quotes */}
                         </Grid>
                     </Grid>
                     <Box sx={{ borderTop: '1px solid rgba(255,255,255,0.1)', mt: 4, pt: 2, textAlign: 'center' }}>
