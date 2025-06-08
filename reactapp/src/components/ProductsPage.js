@@ -98,7 +98,7 @@ const ProductsPage = () => {
   ];
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: '#FEFAE0' }}>
       {/* Drawer */}
       <Drawer
         variant="persistent" anchor="left" open={drawerOpen}

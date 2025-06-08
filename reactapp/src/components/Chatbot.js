@@ -266,6 +266,20 @@ const Chatbot = () => {
         }
     };
 
+    // Mock translation function (replace with actual API call in a real app)
+    const mockTranslateAPI = async (text, targetLang) => {
+        return new Promise(resolve => {
+            setTimeout(() => {
+                if (targetLang === 'id') {
+                    resolve(`${text} (diterjemahkan ke Bahasa Indonesia)`);
+                } else {
+                    resolve(`${text} (translated to ${targetLang})`);
+                }
+            }, 300); // Simulate network delay
+        });
+    };
+
+
     const activeMessages = chatSessions.find(s => s.id === activeChatSessionId)?.messages || [];
 
     const handleLanguageChange = (event) => {
@@ -284,6 +298,35 @@ const Chatbot = () => {
     };
     const handleRemoveSelectedFile = () => {
         setSelectedFile(null);
+    };
+
+    const handleTranslateMessage = async (messageIndexInSession, textToTranslate) => {
+        if (!activeChatSessionId) return;
+
+        // Optional: Add a visual cue that translation is in progress for this specific message
+
+        try {
+            const translatedText = await mockTranslateAPI(textToTranslate, 'id'); // 'id' for Indonesian
+            setChatSessions(prevSessions =>
+                prevSessions.map(session => {
+                    if (session.id === activeChatSessionId) {
+                        const updatedMessages = session.messages.map((msg, index) => {
+                            if (index === messageIndexInSession) {
+                                return { ...msg, text: translatedText, _isTranslatedToId: true }; // Mark as translated
+                            }
+                            return msg;
+                        });
+                        return { ...session, messages: updatedMessages };
+                    }
+                    return session;
+                })
+            );
+        } catch (error) {
+            console.error("Translation error:", error);
+            // Optionally, update the message with an error or show a toast
+        } finally {
+            // End visual cue for translation if one was started
+        }
     };
 
     return (
@@ -695,24 +738,53 @@ const Chatbot = () => {
                     ) : (
                         <List>
                             {currentMessages.map((message, index) => (
-                                <ListItem key={index} sx={{
-                                    display: 'flex',
-                                    justifyContent: message.type === 'user' ? 'flex-end' : 'flex-start',
-                                    p: 1
-                                }}>
-                                    <Paper 
-                                        sx={{
-                                            p: 2,
-                                            maxWidth: '70%',
-                                            bgcolor: message.type === 'user' ? '#dcfce7' : '#fff', // User: light green, Bot: white
-                                            color: message.type === 'user' ? '#166534' : '#333',
-                                        }}
-                                    >
-                                        <Typography>
-                                            {message.type === 'user' ? '🧑‍💻 ' : '🤖 '}
-                                            {message.text}
-                                        </Typography>
-                                    </Paper>
+                                <ListItem 
+                                    key={index} 
+                                    sx={{
+                                        py: 0.5, px:1,
+                                        display: 'flex',
+                                        flexDirection: 'row',
+                                        justifyContent: message.type === 'user' ? 'flex-end' : 'flex-start',
+                                    }}
+                                >
+                                    <Box sx={{
+                                        display: 'flex',
+                                        alignItems: 'center', 
+                                        gap: 0.5,
+                                        maxWidth: '85%', 
+                                    }}>
+                                        <Paper
+                                            elevation={1}
+                                            sx={{
+                                                p: 1.5,
+                                                bgcolor: message.type === 'user' ? '#dcfce7' : (message.type === 'bot' ? '#E9ECEF' : '#fff'),
+                                                color: message.type === 'user' ? '#155724' : '#383D41',
+                                                borderRadius: message.type === 'user' ? '15px 15px 0 15px' : '15px 15px 15px 0',
+                                            }}
+                                        >
+                                            <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                                                {message.type === 'user' ? '🧑‍💻 ' : '🤖 '}
+                                                {message.text}
+                                            </Typography>
+                                        </Paper>
+                                        {message.type === 'bot' && !message._isTranslatedToId && (
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => handleTranslateMessage(index, message.text)}
+                                                aria-label="translate to indonesian"
+                                                title="Translate to Indonesian"
+                                                sx={{
+                                                    color: '#495057', 
+                                                    p: 0.5,
+                                                    '&:hover': {
+                                                        backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                                                    }
+                                                }}
+                                            >
+                                                <TranslateIcon sx={{ fontSize: '1.1rem' }} />
+                                            </IconButton>
+                                        )}
+                                    </Box>
                                 </ListItem>
                             ))}
                             {loading && (

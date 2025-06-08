@@ -124,21 +124,21 @@ const AboutPage = () => {
 
       {/* About Us Content */}
       <Box sx={{ 
-        bgcolor: '#22c55e', // Same lime green as Home page hero section
-        color: 'white', // Adjust text color for better contrast on green background
+        bgcolor: '#FEFAE0', // Changed background color
+        color: '#4D533D', // Default text color for this section
         py: 4, 
         flexGrow: 1 
       }}>
         <Container maxWidth="lg">
           {/* Adjusted text colors for visibility on green background */}
-        <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 'bold', color: 'white', textAlign: 'center', mb: 3 }}>
+        <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 'bold', color: '#4D533D', textAlign: 'center', mb: 3 }}>
           About PetanNaik
         </Typography>
-        <Typography variant="h5" component="p" color="text.secondary" sx={{ textAlign: 'center', mb: 5, maxWidth: '800px', mx: 'auto',color: 'white' }}>
+        <Typography variant="h5" component="p" sx={{ textAlign: 'center', mb: 5, maxWidth: '800px', mx: 'auto', color: '#4D533D' }}>
           Empowering Indonesian Palm Oil Farmers with Technology and Quality Products.
         </Typography>
 
-        <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, mb: 4, bgcolor: 'white', color: 'text.primary' }}> {/* Paper background to white for readability */}
+        <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, mb: 4, bgcolor: 'white', color: 'text.primary' }}>
           <Grid container spacing={4} alignItems="center">
             <Grid item xs={12} md={6}>
               <Typography variant="h4" component="h2" sx={{ fontWeight: 'bold', color: '#166534', mb: 2}}>

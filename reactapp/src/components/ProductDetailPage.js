@@ -91,7 +91,7 @@ const ProductDetailPage = () => {
   const currentProductPrice = typeof product.price === 'string' ? parsePrice(product.price) : product.price;
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: '#FEFAE0' }}>
       {/* Drawer */}
       <Drawer variant="persistent" anchor="left" open={drawerOpen} sx={{ width: drawerOpen ? 240 : 0, flexShrink: 0, '& .MuiDrawer-paper': { width: 240, boxSizing: 'border-box', bgcolor: '#166534', color: 'white', borderRight: 'none' } }}>
         <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255, 255, 255, 0.12)' }}><Typography variant="h6" sx={{ flexGrow: 1, textAlign: 'center' }}>Menu</Typography><IconButton onClick={() => setDrawerOpen(false)} sx={{ color: 'white' }}><ChevronLeftIcon /></IconButton></Box>
