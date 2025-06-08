@@ -20,13 +20,18 @@ export const ProductProvider = ({ children }) => {
         setRecentActivity(prev => [product, ...prev]);
     };
 
+    const getProductById = (id) => {
+        return PRODUCT_DATA.find(product => product.product_id === id);
+    };
+
     return (
         <ProductContext.Provider value={{ 
             products: PRODUCT_DATA,
             cart,
             addToCart,
             recentActivity,
-            addToRecentActivity
+            addToRecentActivity,
+            getProductById // Add getProductById to the context value
         }}>
             {children}
         </ProductContext.Provider>

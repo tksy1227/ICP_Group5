@@ -13,6 +13,8 @@ import {
   Alert,
   Toolbar,
 } from '@mui/material';
+// Import logo
+import petanNaikLogo from '../images/petannaik_logo.png';
 
 function Register() {
   const navigate = useNavigate();
@@ -75,9 +77,9 @@ function Register() {
           <Box sx={{ display: 'flex', alignItems: 'center', mr: 4 }}>
             <Box 
               component="img" 
-              src="/images/petannaik_logo.png" 
+              src={petanNaikLogo} // Use imported logo
               alt="PetanNaik Logo"
-              sx={{ height: 40, width: 40, mr: 1 }}
+              sx={{ height: 40, width: 70, mr: 1 }}
             />
             <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
               PetanNaik

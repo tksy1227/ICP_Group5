@@ -13,18 +13,30 @@ import {
     AppBar,
     Toolbar,
     IconButton,
+    Drawer,
+    ListItemText,
     Menu,
+    Grid, // Added for Footer
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SendIcon from '@mui/icons-material/Send';
 import TranslateIcon from '@mui/icons-material/Translate';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'; 
+import MenuIcon from '@mui/icons-material/Menu'; // Changed from KeyboardArrowDownIcon
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'; // Added import
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import HomeIcon from '@mui/icons-material/Home';
+import EmailIcon from '@mui/icons-material/Email'; // Added for Footer
+import PhoneIcon from '@mui/icons-material/Phone'; // Added for Footer
+import LocationOnIcon from '@mui/icons-material/LocationOn'; // Added for Footer
 import { useLanguage, languages } from '../contexts/LanguageProvider';
 import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../contexts/CartContext'; // Import useCart
 import { useNavigate } from 'react-router-dom';
+import petanNaikLogo from '../images/petannaik_logo.png'; 
+import usericon from '../images/usericon.png'; // Import user icon
+import palmPilotLogo from '../images/palmpilot_logo.png'; // Import PalmPilot logo
 
 const CHATBOT_API = "http://127.0.0.1:8000/api/v1/messaging/chatbot";
 const USER_ID = "13f5223e-f04a-4fa8-9ef2-cf36060f0d6d";
@@ -36,12 +48,13 @@ const Chatbot = () => {
     const messagesEndRef = useRef(null);
     const { language, setLanguage, translations } = useLanguage(); // Make sure translations is used or remove if not
     const { isLoggedIn, user, logout } = useAuth(); // Add logout
+    const { totalCartQuantity } = useCart(); // Get cart quantity
     const navigate = useNavigate();
     
     // Navigation menu state
     const [languageMenu, setLanguageMenu] = useState(null);
-    const [sideMenuOpen, setSideMenuOpen] = useState(false);
-
+    const [drawerOpen, setDrawerOpen] = useState(false); // Changed for consistency
+    
     const handleLanguageClick = (event) => {
         setLanguageMenu(event.currentTarget);
     };
@@ -68,15 +81,12 @@ const Chatbot = () => {
         handleProfileMenuClose();
     };
 
-    const toggleSideMenu = () => {
-        setSideMenuOpen(!sideMenuOpen);
-    };
-
     const menuItems = [
         { text: 'Home', link: '/' },
         { text: 'Products', link: '/products' },
         { text: 'Recommendations', link: '/recommendations' },
         { text: 'Chatbot', link: '/chatbot' },
+        { text: 'Profile', link: '/profile' },
         { text: 'About', link: '/about' },
     ];
 
@@ -87,6 +97,12 @@ const Chatbot = () => {
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
+
+    useEffect(() => {
+        // Set the chatbot's language to English when the component mounts.
+        setLanguage('en');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Empty dependency array ensures this runs only once on mount
 
     const clearChat = () => {
         setMessages([]);
@@ -133,16 +149,64 @@ const Chatbot = () => {
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+            {/* Drawer - Consistent with other pages */}
+            <Drawer
+                variant="persistent"
+                anchor="left"
+                open={drawerOpen}
+                sx={{
+                    width: drawerOpen ? 240 : 0,
+                    flexShrink: 0,
+                    '& .MuiDrawer-paper': {
+                        width: 240,
+                        boxSizing: 'border-box',
+                        bgcolor: '#166534', 
+                        color: 'white',
+                        borderRight: 'none'
+                    },
+                }}
+            >
+                <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255, 255, 255, 0.12)' }}>
+                    <Typography variant="h6" sx={{ flexGrow: 1, textAlign: 'center' }}>Menu</Typography>
+                    <IconButton onClick={() => setDrawerOpen(false)} sx={{ color: 'white' }}>
+                        <ChevronLeftIcon />
+                    </IconButton>
+                </Box>
+                <List>
+                    {menuItems.map((item) => (
+                        <ListItem key={item.text} button onClick={() => { navigate(item.link); setDrawerOpen(false); }} sx={{ '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.08)' }}}>
+                            <ListItemText primary={item.text} />
+                        </ListItem>
+                    ))}
+                </List>
+            </Drawer>
+
             {/* Header/Navigation - Same as Home page */}
             <AppBar position="static" sx={{ bgcolor: '#166534' }}>
                 <Toolbar>
+                    {/* Side Menu Button - MOVED TO THE LEFT */}
+                    <IconButton
+                        color="inherit"
+                        aria-label="open drawer"
+                        edge="start"
+                        onClick={() => setDrawerOpen(!drawerOpen)}
+                        sx={{ mr: 2, display: { xs: 'flex', md: 'none' } }}
+                    >
+                        <MenuIcon />
+                    </IconButton>
+                    <IconButton
+                        color="inherit"
+                        onClick={() => setDrawerOpen(!drawerOpen)}
+                        sx={{ mr: 2, display: { xs: 'none', md: 'flex' } }} >
+                        <MenuIcon />
+                    </IconButton>
                     {/* Logo */}
                     <Box sx={{ display: 'flex', alignItems: 'center', mr: 4 }}>
                         <Box 
                             component="img" 
-                            src="/images/petannaik_logo.png" 
+                            src={petanNaikLogo} // Use imported logo
                             alt="PetanNaik Logo"
-                            sx={{ height: 40, width: 40, mr: 1 }}
+                            sx={{ height: 40, width: 70, mr: 1 }} // Consistent sizing
                         />
                         <Box>
                             <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
@@ -153,15 +217,6 @@ const Chatbot = () => {
                             </Typography>
                         </Box>
                     </Box>
-                    
-                    {/* Side Menu Button */}
-                    <IconButton 
-                        color="inherit" 
-                        onClick={toggleSideMenu}
-                        sx={{ display: { xs: 'flex', md: 'none' }, mr: 2 }}
-                    >
-                        <KeyboardArrowDownIcon />
-                    </IconButton>
                     
                     {/* Navigation Menu */}
                     <Box sx={{ 
@@ -209,7 +264,7 @@ const Chatbot = () => {
                                 >
                                     <Box 
                                         component="img" 
-                                        src="/images/profile_photo.png" 
+                                        src={usericon} // Use imported user icon
                                         alt="Profile"
                                         sx={{ width: 32, height: 32, borderRadius: '50%' }}
                                     />
@@ -222,7 +277,7 @@ const Chatbot = () => {
                                     transformOrigin={{ horizontal: 'right', vertical: 'top' }}
                                     anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
                                 >
-                                    <MenuItem onClick={handleProfileMenuClose}>Profile</MenuItem>
+                                    <MenuItem onClick={() => { navigate('/profile'); handleProfileMenuClose(); }}>Profile</MenuItem>
                                     <MenuItem onClick={handleLogout}>Logout</MenuItem>
                                 </Menu>
                             </>
@@ -248,7 +303,11 @@ const Chatbot = () => {
                             </IconButton>
                         )}
                         
-                        <IconButton color="inherit" sx={{ position: 'relative' }}>
+                        <IconButton 
+                            color="inherit" 
+                            sx={{ position: 'relative' }}
+                            onClick={() => navigate('/cart')} // Navigate to cart page
+                        >
                             <ShoppingCartIcon />
                             <Box
                                 sx={{
@@ -265,9 +324,10 @@ const Chatbot = () => {
                                     alignItems: 'center',
                                     justifyContent: 'center',
                                     fontWeight: 'bold',
+                                    display: totalCartQuantity > 0 ? 'flex' : 'none', // Show badge if items in cart
                                 }}
                             >
-                                0
+                                {totalCartQuantity}
                             </Box>
                         </IconButton>
                     </Box>
@@ -277,16 +337,21 @@ const Chatbot = () => {
             {/* Hero Section for Chatbot */}
             <Box 
                 sx={{ 
-                    bgcolor: '#22c55e', 
-                    color: 'white',
+                    bgcolor: '#FEFAE0', 
+                    color: '#4D533D',
                     py: 4,
                     textAlign: 'center'
                 }}
             >
                 <Container>
-                    <Typography variant="h3" component="h1" sx={{ fontWeight: 'bold', mb: 2 }}>
-                        🤖 PalmPilot Assistant
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
+                        <Box
+                            component="img"
+                            src={palmPilotLogo} // Use imported PalmPilot logo
+                            alt="PalmPilot Assistant Logo"
+                            sx={{ height: { xs: 40, md: 100 }, width: { xs: 40, md: 500 }, mr: 1.5 }}
+                        />
+                    </Box>
                     <Typography variant="h6" sx={{ mb: 2 }}>
                         Your Smart Palm Oil Farming Consultant - Available 24/7
                     </Typography>
@@ -487,6 +552,43 @@ const Chatbot = () => {
                     </Button>
                 </Box>
             </Container>
+            {/* Footer - Same as Home Page */}
+            <Box sx={{ bgcolor: '#1e293b', color: 'white', py: 6, mt: 'auto' }}>
+                <Container>
+                    <Grid container spacing={4}>
+                        <Grid item xs={12} md={3}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                <Box component="img" src={petanNaikLogo} alt="PetanNaik Logo" sx={{ height: 40, width: 70, mr: 1 }} />
+                                <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>PetanNaik</Typography>
+                            </Box>
+                            <Typography variant="body2" sx={{ mb: 2 }}>Trusted e-commerce platform for small-scale palm oil farmers in Indonesia.</Typography>
+                        </Grid>
+                        <Grid item xs={12} md={3}>
+                            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>Products</Typography>
+                            <Typography variant="body2" sx={{ mb: 1 }}>Fertilizers & Nutrition</Typography>
+                            <Typography variant="body2" sx={{ mb: 1 }}>Pesticides</Typography>
+                            <Typography variant="body2" sx={{ mb: 1 }}>Farming Tools</Typography>
+                            <Typography variant="body2" sx={{ mb: 1 }}>Premium Seeds</Typography>
+                        </Grid>
+                        <Grid item xs={12} md={3}>
+                            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>Services</Typography>
+                            <Typography variant="body2" sx={{ mb: 1 }}>PalmPilot Consultation</Typography>
+                            <Typography variant="body2" sx={{ mb: 1 }}>AI Recommendations</Typography>
+                            <Typography variant="body2" sx={{ mb: 1 }}>Farming Guides</Typography>
+                            <Typography variant="body2" sx={{ mb: 1 }}>Technical Support</Typography>
+                        </Grid>
+                        <Grid item xs={12} md={3}>
+                            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>Contact</Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}><EmailIcon sx={{ mr: 1, fontSize: 18 }} /><Typography variant="body2">info@petannaik.com</Typography></Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}><PhoneIcon sx={{ mr: 1, fontSize: 18 }} /><Typography variant="body2">+62 21 1234 5678</Typography></Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}><LocationOnIcon sx={{ mr: 1, fontSize: 18 }} /><Typography variant="body2">Jakarta, Indonesia</Typography></Box>
+                        </Grid>
+                    </Grid>
+                    <Box sx={{ borderTop: '1px solid rgba(255,255,255,0.1)', mt: 4, pt: 2, textAlign: 'center' }}>
+                        <Typography variant="body2">© {new Date().getFullYear()} PetanNaik by SawitPRO. All rights reserved.</Typography>
+                    </Box>
+                </Container>
+            </Box>
         </Box>
     );
 };
