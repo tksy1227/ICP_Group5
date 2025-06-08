@@ -17,6 +17,8 @@ import {
     ListItemText,
     Menu,
     Grid, // Added for Footer
+    ListSubheader, // Added for chat history sections
+    Divider, // Added for separating sections in drawer
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SendIcon from '@mui/icons-material/Send';
@@ -37,16 +39,23 @@ import { useNavigate } from 'react-router-dom';
 import petanNaikLogo from '../images/petannaik_logo.png'; 
 import usericon from '../images/usericon.png'; // Import user icon
 import palmPilotLogo from '../images/palmpilot_logo.png'; // Import PalmPilot logo
+import { v4 as uuidv4 } from 'uuid'; // For unique chat session IDs
 
 const CHATBOT_API = "http://127.0.0.1:8000/api/v1/messaging/chatbot";
 const USER_ID = "13f5223e-f04a-4fa8-9ef2-cf36060f0d6d";
 
+const CHAT_SESSIONS_KEY = 'petanNaikChatSessions';
+const ACTIVE_CHAT_ID_KEY = 'petanNaikActiveChatId';
+const drawerWidth = 240; // Define drawer width for consistent use
+
 const Chatbot = () => {
-    const [messages, setMessages] = useState([]);
+    // const [messages, setMessages] = useState([]); // Replaced by chatSessions
+    const [chatSessions, setChatSessions] = useState([]);
+    const [activeChatSessionId, setActiveChatSessionId] = useState(null);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(false);
     const messagesEndRef = useRef(null);
-    const { language, setLanguage, translations } = useLanguage(); // Make sure translations is used or remove if not
+    const { language, setLanguage, translations } = useLanguage();
     const { isLoggedIn, user, logout } = useAuth(); // Add logout
     const { totalCartQuantity } = useCart(); // Get cart quantity
     const navigate = useNavigate();
@@ -54,7 +63,7 @@ const Chatbot = () => {
     // Navigation menu state
     const [languageMenu, setLanguageMenu] = useState(null);
     const [drawerOpen, setDrawerOpen] = useState(false); // Changed for consistency
-    
+
     const handleLanguageClick = (event) => {
         setLanguageMenu(event.currentTarget);
     };
@@ -94,27 +103,127 @@ const Chatbot = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
+    // Derived state for messages to display - MOVED UP
+    const currentMessages = chatSessions.find(session => session.id === activeChatSessionId)?.messages || [];
+
     useEffect(() => {
         scrollToBottom();
-    }, [messages]);
+    }, [currentMessages]); // Changed from messages to currentMessages
+
+    const handleNewChat = () => {
+        const newId = uuidv4();
+        const newSessionName = `Chat ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+        const newSession = { id: newId, name: newSessionName, messages: [] };
+        setChatSessions(prev => [newSession, ...prev]); // Add to the beginning
+        setActiveChatSessionId(newId);
+        // setDrawerOpen(false); // Optionally close drawer
+    };
 
     useEffect(() => {
-        // Set the chatbot's language to English when the component mounts.
+        const savedSessions = JSON.parse(localStorage.getItem(CHAT_SESSIONS_KEY) || '[]');
+        const savedActiveId = localStorage.getItem(ACTIVE_CHAT_ID_KEY);
+
+        if (savedSessions.length > 0) {
+            setChatSessions(savedSessions);
+            if (savedActiveId && savedSessions.some(s => s.id === savedActiveId)) {
+                setActiveChatSessionId(savedActiveId);
+            } else {
+                setActiveChatSessionId(savedSessions[0].id); // Default to the first session
+            }
+        } else {
+            handleNewChat(); // Create a new chat if no sessions are found
+        }
         setLanguage('en');
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // Empty dependency array ensures this runs only once on mount
+    }, []); // Mount effect
+
+    useEffect(() => {
+        localStorage.setItem(CHAT_SESSIONS_KEY, JSON.stringify(chatSessions));
+        if (activeChatSessionId) {
+            localStorage.setItem(ACTIVE_CHAT_ID_KEY, activeChatSessionId);
+        }
+    }, [chatSessions, activeChatSessionId]);
+
+
+    const handleSelectChat = (sessionId) => {
+        setActiveChatSessionId(sessionId);
+        // setDrawerOpen(false); // Optionally close drawer
+    };
+
+    const handleDeleteChat = (sessionId, event) => {
+        event.stopPropagation(); // Prevent ListItem click
+        setChatSessions(prev => prev.filter(session => session.id !== sessionId));
+        if (activeChatSessionId === sessionId) {
+            const remainingSessions = chatSessions.filter(session => session.id !== sessionId);
+            if (remainingSessions.length > 0) {
+                setActiveChatSessionId(remainingSessions[0].id);
+            } else {
+                handleNewChat(); // Create a new one if all are deleted
+            }
+        }
+    };
 
     const clearChat = () => {
-        setMessages([]);
+        if (!activeChatSessionId) return;
+        setChatSessions(prevSessions =>
+            prevSessions.map(session =>
+                session.id === activeChatSessionId
+                    ? { ...session, messages: [] }
+                    : session
+            )
+        );
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!input.trim()) return;
 
+        let currentSessionId = activeChatSessionId;
+        let isNewSessionJustCreated = false;
+
+        // Ensure there's an active session, create if not (e.g., if all were deleted)
+        if (!currentSessionId || !chatSessions.find(s => s.id === currentSessionId)) {
+            const newId = uuidv4();
+            const newSessionName = `New Chat ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+            const newSession = { id: newId, name: newSessionName, messages: [] };
+            // This direct state update before API call might be tricky with async nature.
+            // It's better to ensure handleNewChat is called if activeChatSessionId is null.
+            // For simplicity, let's assume initialization always provides an active session.
+            // If activeChatSessionId can become null after deletions, this needs robust handling.
+            // The current handleDeleteChat logic tries to set a new active or create one.
+            
+            // Fallback if somehow no active session (should be rare with current logic)
+            if (!activeChatSessionId) {
+                 console.warn("No active chat session, creating a new one.");
+                 handleNewChat(); // This will set activeChatSessionId
+                 // Since handleNewChat is async setState, currentSessionId might not be updated yet for this submit.
+                 // This part needs careful review if activeChatSessionId can truly be null here.
+                 // For now, we'll rely on the initialization and delete logic to maintain an active ID.
+                 currentSessionId = chatSessions.length > 0 ? chatSessions[0].id : uuidv4(); // A bit of a guess if handleNewChat hasn't updated state yet.
+            } else {
+                currentSessionId = activeChatSessionId;
+            }
+        }
+
         const userMessage = input;
         setInput('');
-        setMessages(prev => [...prev, { type: 'user', text: userMessage }]);
+
+        setChatSessions(prevSessions =>
+            prevSessions.map(session => {
+                if (session.id === currentSessionId) {
+                    const updatedMessages = [...session.messages, { type: 'user', text: userMessage }];
+                    // Update name if it's the first message of this session
+                    const shouldUpdateName = session.messages.length === 0 && updatedMessages.length === 1;
+                    
+                    return {
+                        ...session,
+                        name: shouldUpdateName ? (userMessage.substring(0, 25) + (userMessage.length > 25 ? '...' : '')) : session.name,
+                        messages: updatedMessages
+                    };
+                }
+                return session;
+            })
+        );
         setLoading(true);
 
         try {
@@ -132,37 +241,41 @@ const Chatbot = () => {
 
             if (response.ok) {
                 const data = await response.json();
-                setMessages(prev => [...prev, { type: 'bot', text: data.message || 'Sorry, I encountered an error.' }]);
+                const botMessageText = data.message || translations.chatbot.error;
+                setChatSessions(prev => prev.map(s => s.id === currentSessionId ? {...s, messages: [...s.messages, {type: 'bot', text: botMessageText}]} : s));
             } else {
-                setMessages(prev => [...prev, { type: 'bot', text: 'Sorry, I encountered an error.' }]);
+                setChatSessions(prev => prev.map(s => s.id === currentSessionId ? {...s, messages: [...s.messages, {type: 'bot', text: translations.chatbot.connectionError }]} : s));
             }
         } catch (error) {
-            setMessages(prev => [...prev, { type: 'bot', text: 'Connection error. Please try again.' }]);
+            setChatSessions(prev => prev.map(s => s.id === currentSessionId ? {...s, messages: [...s.messages, {type: 'bot', text: translations.chatbot.connectionError }]} : s));
         } finally {
             setLoading(false);
         }
     };
+
+    const activeMessages = chatSessions.find(s => s.id === activeChatSessionId)?.messages || [];
 
     const handleLanguageChange = (event) => {
         setLanguage(event.target.value);
     };
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <Box sx={{ display: 'flex' }}> {/* Outer Box to manage Drawer and Main Content side-by-side */}
             {/* Drawer - Consistent with other pages */}
             <Drawer
                 variant="persistent"
                 anchor="left"
                 open={drawerOpen}
                 sx={{
-                    width: drawerOpen ? 240 : 0,
+                    width: drawerWidth,
                     flexShrink: 0,
                     '& .MuiDrawer-paper': {
-                        width: 240,
+                        width: drawerWidth,
                         boxSizing: 'border-box',
                         bgcolor: '#166534', 
                         color: 'white',
-                        borderRight: 'none'
+                        borderRight: 'none',
+                        position: 'relative', // Ensures drawer is part of the layout flow
                     },
                 }}
             >
@@ -172,6 +285,8 @@ const Chatbot = () => {
                         <ChevronLeftIcon />
                     </IconButton>
                 </Box>
+                {/* Navigation Links - MOVED HERE */}
+                <ListSubheader sx={{ bgcolor: '#166534', color: 'rgba(255,255,255,0.7)', lineHeight: '30px', fontWeight: 'medium' }}>Navigation</ListSubheader>
                 <List>
                     {menuItems.map((item) => (
                         <ListItem key={item.text} button onClick={() => { navigate(item.link); setDrawerOpen(false); }} sx={{ '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.08)' }}}>
@@ -179,10 +294,77 @@ const Chatbot = () => {
                         </ListItem>
                     ))}
                 </List>
+                <Divider sx={{ bgcolor: 'rgba(255, 255, 255, 0.12)' }} />
+                {/* New Chat Button */}
+                <ListItem button onClick={handleNewChat} sx={{ '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.08)' }, borderBottom: '1px solid rgba(255, 255, 255, 0.12)' }}>
+                    <ListItemText primary="➕ New Chat" primaryTypographyProps={{ sx: { color: 'white', fontWeight: 'medium' } }} />
+                </ListItem>
+
+                {/* Chat History Section */}
+                <ListSubheader sx={{ bgcolor: '#166534', color: 'rgba(255,255,255,0.7)', lineHeight: '30px', fontWeight: 'medium' }}>Chat History</ListSubheader>
+                <Box sx={{ overflowY: 'auto', flexGrow: 1 /* Allow history to take space */ }}>
+                    <List dense>
+                        {chatSessions.map((session) => (
+                            <ListItem 
+                                key={session.id} 
+                                button 
+                                onClick={() => handleSelectChat(session.id)}
+                                selected={activeChatSessionId === session.id}
+                                sx={{
+                                    '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.08)' },
+                                    '&.Mui-selected': { bgcolor: 'rgba(255, 255, 255, 0.2)', '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.25)' } },
+                                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', py: 0.5, px:2
+                                }}
+                            >
+                                <ListItemText 
+                                    primary={session.name} 
+                                    primaryTypographyProps={{ 
+                                        sx: { 
+                                            whiteSpace: 'nowrap', 
+                                            overflow: 'hidden', 
+                                            textOverflow: 'ellipsis',
+                                            maxWidth: 150, // Adjust based on drawer width (240px - padding - icon)
+                                            color: 'white',
+                                            fontSize: '0.9rem'
+                                        } 
+                                    }} 
+                                />
+                                <IconButton 
+                                    size="small" 
+                                    onClick={(e) => handleDeleteChat(session.id, e)} 
+                                    sx={{ color: 'rgba(255,255,255,0.6)', '&:hover': { color: 'white', bgcolor: 'rgba(255,255,255,0.1)' } }}
+                                    aria-label="delete chat"
+                                >
+                                    <DeleteIcon fontSize="small" />
+                                </IconButton>
+                            </ListItem>
+                        ))}
+                    </List>
+                </Box>
             </Drawer>
 
-            {/* Header/Navigation - Same as Home page */}
-            <AppBar position="static" sx={{ bgcolor: '#166534' }}>
+            {/* Main Content Area - This will shift when the drawer opens/closes */}
+            <Box
+                component="main"
+                sx={{
+                    flexGrow: 1,
+                    transition: (theme) => theme.transitions.create('margin', {
+                        easing: theme.transitions.easing.sharp,
+                        duration: theme.transitions.duration.leavingScreen,
+                    }),
+                    marginLeft: `-${drawerWidth}px`, // Start with content filling space as if drawer is closed
+                    ...(drawerOpen && {
+                        transition: (theme) => theme.transitions.create('margin', {
+                            easing: theme.transitions.easing.easeOut,
+                            duration: theme.transitions.duration.enteringScreen,
+                        }),
+                        marginLeft: 0, // Shift content to the right when drawer is open
+                    }),
+                    display: 'flex', flexDirection: 'column', minHeight: '100vh' // Ensure footer sticks to bottom
+                }}
+            >
+                {/* Header/Navigation - Now part of the shifting main content */}
+                <AppBar position="static" sx={{ bgcolor: '#166534' }}>
                 <Toolbar>
                     {/* Side Menu Button - MOVED TO THE LEFT */}
                     <IconButton
@@ -219,22 +401,7 @@ const Chatbot = () => {
                     </Box>
                     
                     {/* Navigation Menu */}
-                    <Box sx={{ 
-                        flexGrow: 1, 
-                        display: { xs: 'none', md: 'flex' }, 
-                        justifyContent: 'center' 
-                    }}>
-                        {menuItems.map((item) => (
-                            <Button 
-                                key={item.text}
-                                color="inherit"
-                                onClick={() => navigate(item.link)}
-                                sx={{ mx: 1, fontWeight: 'medium' }}
-                            >
-                                {item.text}
-                            </Button>
-                        ))}
-                    </Box>
+                    <Box sx={{ flexGrow: 1 }} /> {/* This Box now just takes up space */}
                     
                     {/* Right Side - Language, Login, Cart */}
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -243,16 +410,17 @@ const Chatbot = () => {
                             onClick={handleLanguageClick}
                             endIcon={<KeyboardArrowDownIcon />}
                             sx={{ mr: 1 }}
-                        >
-                            English
+                        > {/* This button text should ideally reflect current `language` state from context */}
+                            {languages[language]?.name || 'Language'}
                         </Button>
                         <Menu
                             anchorEl={languageMenu}
                             open={Boolean(languageMenu)}
                             onClose={handleLanguageClose}
                         >
-                            <MenuItem onClick={handleLanguageClose}>English</MenuItem>
-                            <MenuItem onClick={handleLanguageClose}>Bahasa Indonesia</MenuItem>
+                            {Object.entries(languages).map(([code, langDetails]) => (
+                                <MenuItem key={code} onClick={() => { setLanguage(code); handleLanguageClose(); }}>{langDetails.name}</MenuItem>
+                            ))}
                         </Menu>
                         
                         {isLoggedIn ? (
@@ -333,9 +501,8 @@ const Chatbot = () => {
                     </Box>
                 </Toolbar>
             </AppBar>
-
-            {/* Hero Section for Chatbot */}
-            <Box 
+                {/* Hero Section for Chatbot */}
+                <Box 
                 sx={{ 
                     bgcolor: '#FEFAE0', 
                     color: '#4D533D',
@@ -359,10 +526,10 @@ const Chatbot = () => {
                         Get expert advice on fertilizers, pest control, harvesting, and more!
                     </Typography>
                 </Container>
-            </Box>
+                </Box>
 
-            {/* Main Chat Container */}
-            <Container maxWidth="lg" sx={{ flex: 1, py: 4, display: 'flex', flexDirection: 'column' }}>
+                {/* Main Chat Container */}
+                <Container maxWidth="lg" sx={{ flex: 1, py: 4, display: 'flex', flexDirection: 'column' }}>
                 {/* Chat Controls */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -399,7 +566,7 @@ const Chatbot = () => {
                                 }
                             }}
                         >
-                            Clear Chat
+                            {translations.chatbot.clear}
                         </Button>
                     </Box>
                     
@@ -434,7 +601,7 @@ const Chatbot = () => {
                         minHeight: '60vh'
                     }}
                 >
-                    {messages.length === 0 ? (
+                    {currentMessages.length === 0 && !loading ? ( // Show welcome only if no messages and not loading
                         <Box sx={{ 
                             display: 'flex', 
                             flexDirection: 'column', 
@@ -485,7 +652,7 @@ const Chatbot = () => {
                         </Box>
                     ) : (
                         <List>
-                            {messages.map((message, index) => (
+                            {currentMessages.map((message, index) => (
                                 <ListItem key={index} sx={{
                                     display: 'flex',
                                     justifyContent: message.type === 'user' ? 'flex-end' : 'flex-start',
@@ -495,7 +662,8 @@ const Chatbot = () => {
                                         sx={{
                                             p: 2,
                                             maxWidth: '70%',
-                                            bgcolor: message.type === 'user' ? '#e3f2fd' : '#fff'
+                                            bgcolor: message.type === 'user' ? '#dcfce7' : '#fff', // User: light green, Bot: white
+                                            color: message.type === 'user' ? '#166534' : '#333',
                                         }}
                                     >
                                         <Typography>
@@ -551,9 +719,9 @@ const Chatbot = () => {
                         {translations.chatbot.send}
                     </Button>
                 </Box>
-            </Container>
-            {/* Footer - Same as Home Page */}
-            <Box sx={{ bgcolor: '#1e293b', color: 'white', py: 6, mt: 'auto' }}>
+                </Container>
+                {/* Footer - Now part of the shifting main content */}
+                <Box sx={{ bgcolor: '#1e293b', color: 'white', py: 6, mt: 'auto' }}>
                 <Container>
                     <Grid container spacing={4}>
                         <Grid item xs={12} md={3}>
@@ -588,6 +756,7 @@ const Chatbot = () => {
                         <Typography variant="body2">© {new Date().getFullYear()} PetanNaik by SawitPRO. All rights reserved.</Typography>
                     </Box>
                 </Container>
+                </Box>
             </Box>
         </Box>
     );

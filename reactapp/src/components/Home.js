@@ -364,6 +364,7 @@ function Home() {
             <Button 
               variant="contained" 
               size="large"
+              onClick={() => navigate('/products')} // Navigate to products page
               startIcon={<ShoppingCartIcon />}
               sx={{ 
                 bgcolor: '#eab308', 
@@ -378,6 +379,7 @@ function Home() {
             <Button 
               variant="outlined" 
               size="large"
+              onClick={() => navigate('/about')} // Navigate to about page
               sx={{ 
                 borderColor: 'white', 
                 color: 'white',

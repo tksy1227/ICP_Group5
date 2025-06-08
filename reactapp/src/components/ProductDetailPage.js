@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  AppBar, Box, Button, Container, Drawer, Grid, IconButton, List, ListItem, ListItemText, Menu, MenuItem, Paper, Toolbar, Typography, Rating, CardMedia
+  AppBar, Box, Button, Container, Drawer, Grid, IconButton, List, ListItem, ListItemText, Menu, MenuItem, Paper, Toolbar, Typography, Rating, CardMedia, Card, CardContent, CardActions, Divider
 } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -26,10 +26,11 @@ const ProductDetailPage = () => {
   const { productId } = useParams();
   const { isLoggedIn, user, logout } = useAuth();
   const { totalCartQuantity, cartItems, addToCart, updateQuantity, parsePrice } = useCart();
-  const { getProductById } = useProducts();
+  const { getProductById, products: allProducts } = useProducts(); // Get allProducts
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [frequentlyBought, setFrequentlyBought] = useState([]);
 
   const [languageMenu, setLanguageMenu] = useState(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -40,18 +41,29 @@ const ProductDetailPage = () => {
     const foundProduct = getProductById(productId);
     if (foundProduct) {
       // Simulate fetching richer details if they were separate
-      // For now, we use what's in ProductContext and add placeholders
       setProduct({
         ...foundProduct,
-        // Placeholder data as ProductContext might be lean
         image: `https://via.placeholder.com/600x400/22c55e/ffffff?text=${encodeURIComponent(foundProduct.name.substring(0,20))}`,
-        description: foundProduct.description || `Detailed description for ${foundProduct.name} is not yet available. This product is known for its quality and effectiveness in palm oil farming.`,
+        // Use description and rating from ProductContext if available, otherwise fallback
+        description: foundProduct.description || `Detailed description for ${foundProduct.name}. This product is known for its quality and effectiveness in palm oil farming.`,
         rating: foundProduct.rating || 4.5, // Default rating
         reviews: foundProduct.reviews || Math.floor(Math.random() * 100) + 5, // Random review count
       });
+
+      // Logic for frequently bought together
+      const otherProducts = allProducts
+        .filter(p => p.product_id !== productId)
+        .sort(() => 0.5 - Math.random()) // Shuffle for variety
+        .slice(0, 3); // Take up to 3 other products
+
+      setFrequentlyBought(otherProducts.map(p => ({
+        ...p,
+        image: `https://via.placeholder.com/300x200/22c55e/ffffff?text=${encodeURIComponent(p.name.substring(0,15))}`,
+        rating: p.rating || (Math.random() * (5 - 3.5) + 3.5).toFixed(1), // Random rating
+      })));
     }
     setLoading(false);
-  }, [productId, getProductById]);
+  }, [productId, getProductById, allProducts]);
 
   const handleProfileMenuOpen = (event) => setProfileMenuAnchorEl(event.currentTarget);
   const handleProfileMenuClose = () => setProfileMenuAnchorEl(null);
@@ -151,6 +163,59 @@ const ProductDetailPage = () => {
               )}
               {/* Placeholder for more details like specifications, brand, etc. */}
               <Typography variant="caption" display="block" sx={{mt: 2, color: 'text.disabled'}}>Product ID: {product.product_id}</Typography>
+
+              {/* Frequently Bought Together Section - MOVED HERE */}
+              {isLoggedIn && frequentlyBought.length > 0 && (
+                <Box sx={{ mt: 4 }}> {/* Changed Grid item to Box and adjusted margin */}
+                  <Typography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 'bold', color: '#166534', mb: 3 }}>
+                    Frequently Bought Together
+                  </Typography>
+                  <Grid container spacing={3} justifyContent="center" alignItems="stretch"> {/* Explicitly set alignItems */}
+                    {frequentlyBought.map((freqProduct) => {
+                      const freqCartItem = cartItems.find(item => item.id === freqProduct.product_id);
+                      const freqProductPrice = typeof freqProduct.price === 'string' ? parsePrice(freqProduct.price) : freqProduct.price;
+
+                      return (
+                        <Grid item xs={12} sm={6} md={4} key={freqProduct.product_id}> {/* Adjusted md breakpoint for better fit if needed */}
+                          <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', minHeight: 380 /* Adjusted minHeight slightly */ }}>
+                            <CardMedia // Image
+                              component="img"
+                              height="180" // Adjusted height for consistency
+                              image={freqProduct.image}
+                              alt={freqProduct.name}
+                              sx={{ objectFit: 'cover' }}
+                            />
+                            <CardContent sx={{ flexGrow: 1 }}>
+                              <Typography gutterBottom variant="h6" component="div" sx={{ fontSize: '1rem', fontWeight: 'medium', minHeight: '3.2em', /* approx 2 lines for 1rem font with 1.6 line-height */ overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                                {freqProduct.name}
+                              </Typography>
+                              <Typography variant="body1" color="#166534" sx={{ fontWeight: 'bold', mb: 1 }}>
+                                {formatCurrency(freqProductPrice)}
+                              </Typography>
+                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Rating name={`rating-${freqProduct.product_id}`} value={parseFloat(freqProduct.rating)} precision={0.1} readOnly size="small" />
+                              </Box>
+                            </CardContent>
+                            <CardActions sx={{ p: 2, pt: 0, mt: 'auto' /* Push actions to bottom */ }}>
+                              {freqCartItem ? (
+                                <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                                  <IconButton onClick={() => updateQuantity(freqProduct.product_id, freqCartItem.quantity - 1)} size="small" sx={{ color: '#166534' }}><RemoveCircleOutlineIcon /></IconButton>
+                                  <Typography sx={{ mx: 1.5, fontWeight: 'medium' }}>{freqCartItem.quantity}</Typography>
+                                  <IconButton onClick={() => updateQuantity(freqProduct.product_id, freqCartItem.quantity + 1)} size="small" sx={{ color: '#166534' }}><AddCircleOutlineIcon /></IconButton>
+                                </Box>
+                              ) : (
+                                <Button fullWidth variant="contained" startIcon={<ShoppingCartIcon />} onClick={() => addToCart({ ...freqProduct, id: freqProduct.product_id, price: freqProductPrice })} sx={{ bgcolor: '#22c55e', '&:hover': { bgcolor: '#16a34a' } }}>
+                                  Add to Cart
+                                </Button>
+                              )}
+                            </CardActions>
+                          </Card>
+                        </Grid>
+                      );
+                    })}
+                  </Grid>
+                </Box>
+              )}
             </Grid>
           </Grid>
         </Paper>
