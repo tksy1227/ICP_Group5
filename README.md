@@ -7,7 +7,7 @@ Back-end server: https://backend-deployment-588q.onrender.com
 
 ---
 
-## 📦 Prerequisites
+## 📦 Prerequisites (to be updated before sent for asg3)
 
 The instructions are also found in the repository (`instructions` word doc).
 Before starting, make sure you have:
