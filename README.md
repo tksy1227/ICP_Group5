@@ -1,9 +1,7 @@
 # ICP_Group5
 Repo for ICP Group 5
 
-# 🧠 Local LLM Chatbot (FastAPI + Streamlit)
-
-This project allows you to run a local LLM-based chatbot using FastAPI and Streamlit.
+Dployed project: https://front-end-deployment-ei2n.onrender.com
 
 ---
 
