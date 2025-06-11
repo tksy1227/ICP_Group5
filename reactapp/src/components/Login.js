@@ -148,6 +148,9 @@ function Login() {
                   onSuccess={handleTurnstileVerify}
                   // onError, onExpire can also be handled
                   // theme="light" or "dark" or "auto"
+                  options={{
+                    mode: 'managed', // Explicitly set mode to 'managed' for a visible challenge like a slider
+                  }}
                 />
               </Box>
               <Button
