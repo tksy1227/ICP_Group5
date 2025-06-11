@@ -13,6 +13,7 @@ import {
   Alert,
   Toolbar,
 } from '@mui/material';
+import { Turnstile } from '@marsidev/react-turnstile'; // Correct import
 // Import logo
 import petanNaikLogo from '../images/petannaik_logo.png';
 
@@ -22,6 +23,7 @@ function Login() {
   const { login } = useAuth();
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
+    turnstileToken: '', // Add state for Turnstile token
     email: '',
     password: ''
   });
@@ -33,21 +35,54 @@ function Login() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleTurnstileVerify = (token) => {
+    setFormData(prev => ({ ...prev, turnstileToken: token }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
-    // Get users from localStorage
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const user = users.find(u => u.email === formData.email && u.password === formData.password);
+    if (!formData.turnstileToken) {
+      setError('Please complete the CAPTCHA verification.');
+      return;
+    }
 
-    if (user) {
-      login(user);
-      navigate('/');
-    } else {
-      setError('Invalid email or password');
+    try {
+      const response = await fetch('http://localhost:3001/api/login', { // Ensure backend is running on this port
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          turnstileToken: formData.turnstileToken,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        login(data.user); // data.user should contain { id, name, email } from backend
+        navigate('/');
+      } else {
+        setError(data.message || 'Login failed. Please try again.');
+        // Optionally, reset Turnstile if the error is related to it.
+        // You might need a way to manually reset the widget if desired:
+        // if (window.turnstile) window.turnstile.reset(); // Requires @marsidev/react-turnstile to expose this
+      }
+    } catch (networkError) {
+      console.error('Login API call failed:', networkError);
+      setError('Could not connect to the server. Please try again later.');
     }
   };
+  // Function to manually reset Turnstile if needed (optional, requires library support for window.turnstile.reset())
+  // const resetTurnstile = () => {
+  //   if (window.turnstile && typeof window.turnstile.reset === 'function') {
+  //       window.turnstile.reset();
+  //   }
+  // };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -107,6 +142,14 @@ function Login() {
                 value={formData.password}
                 onChange={handleChange}
               />
+              <Box sx={{ mt: 2, mb: 1, display: 'flex', justifyContent: 'center' }}>
+                <Turnstile
+                  siteKey={process.env.REACT_APP_TURNSTILE_SITE_KEY} // Use environment variable
+                  onSuccess={handleTurnstileVerify}
+                  // onError, onExpire can also be handled
+                  // theme="light" or "dark" or "auto"
+                />
+              </Box>
               <Button
                 type="submit"
                 fullWidth

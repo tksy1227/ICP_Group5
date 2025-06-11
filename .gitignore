@@ -1,3 +1,5 @@
 venv/
 models/*.gguf
 node_modules/
+reactapp/.env
+reactapp-backend/.env

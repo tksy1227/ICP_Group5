@@ -13,6 +13,7 @@ import {
   Alert,
   Toolbar,
 } from '@mui/material';
+import { Turnstile } from '@marsidev/react-turnstile'; // Correct import
 // Import logo
 import petanNaikLogo from '../images/petannaik_logo.png';
 
@@ -21,6 +22,7 @@ function Register() {
   const { login } = useAuth();
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
+    turnstileToken: '', // Add state for Turnstile token
     name: '',
     email: '',
     password: '',
@@ -34,40 +36,62 @@ function Register() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleTurnstileVerify = (token) => {
+    setFormData(prev => ({ ...prev, turnstileToken: token }));
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    if (!formData.turnstileToken) {
+      setError('Please complete the CAPTCHA verification.');
+      return;
+    }
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
     }
 
-    // Get existing users from localStorage
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    
-    // Check if user already exists
-    if (users.find(u => u.email === formData.email)) {
-      setError('User with this email already exists');
-      return;
+    try {
+      const response = await fetch('http://localhost:3001/api/register', { // Ensure backend is running
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          turnstileToken: formData.turnstileToken,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Auto-login the user after successful registration
+        login(data.user); // data.user should contain { id, name, email } from backend
+        navigate('/');
+      } else {
+        setError(data.message || 'Registration failed. Please try again.');
+        // Optionally, reset Turnstile:
+        // if (window.turnstile && typeof window.turnstile.reset === 'function') window.turnstile.reset();
+      }
+    } catch (networkError) {
+      console.error('Registration API call failed:', networkError);
+      setError('Could not connect to the server. Please try again later.');
     }
-
-    // Create new user
-    const newUser = {
-      id: Date.now(),
-      name: formData.name,
-      email: formData.email,
-      password: formData.password
-    };
-
-    // Save to localStorage
-    users.push(newUser);
-    localStorage.setItem('users', JSON.stringify(users));
-
-    // Auto-login the user
-    login(newUser);
-    navigate('/');
   };
+  // Function to manually reset Turnstile if needed (optional, requires library support for window.turnstile.reset())
+  // const resetTurnstile = () => {
+  //   if (window.turnstile && typeof window.turnstile.reset === 'function') {
+  //       // You might need to get the widget ID if you have multiple Turnstile widgets on a page.
+  //       // For a single widget, this often works.
+  //       window.turnstile.reset();
+  //   }
+  // };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -149,6 +173,14 @@ function Register() {
                 value={formData.confirmPassword}
                 onChange={handleChange}
               />
+              <Box sx={{ mt: 2, mb: 1, display: 'flex', justifyContent: 'center' }}>
+                <Turnstile
+                  siteKey={process.env.REACT_APP_TURNSTILE_SITE_KEY} // Use environment variable
+                  onSuccess={handleTurnstileVerify}
+                  // onError, onExpire can also be handled
+                  // theme="light" or "dark" or "auto"
+                />
+              </Box>
               <Button
                 type="submit"
                 fullWidth
