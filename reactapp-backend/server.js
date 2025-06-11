@@ -22,8 +22,8 @@ if (!TURNSTILE_SECRET_KEY) {
 // Configure CORS
 const allowedOrigins = [
     'http://localhost:3000', // Your local React development server
-    // Add your deployed frontend URL here once you have it
-    // e.g., 'https://your-react-app-name.onrender.com'
+        'https://your-actual-frontend-name.onrender.com' // <<<< REPLACE THIS WITH YOUR ACTUAL DEPLOYED FRONTEND URL
+        // e.g., if your frontend is at my-cool-app.onrender.com, put 'https://my-cool-app.onrender.com'
 ];
 
 app.use(cors({
