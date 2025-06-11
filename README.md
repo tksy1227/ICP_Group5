@@ -1,7 +1,9 @@
 # ICP_Group5
 Repo for ICP Group 5
 
-Dployed project: https://front-end-deployment-ei2n.onrender.com
+Deployed project: https://front-end-deployment-ei2n.onrender.com
+
+Back-end server: https://backend-deployment-588q.onrender.com
 
 ---
 
