@@ -99,7 +99,7 @@ app.post('/api/register', async (req, res) => {
     // In a real app, HASH THE PASSWORD before storing it!
     // const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = {
-        id: Date.now().toString(), // Use a more robust ID in production (e.g., UUID)
+            id: uuidv4(), // changed
         name,
         email,
         password, // STORE HASHED PASSWORD
