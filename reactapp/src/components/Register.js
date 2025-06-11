@@ -17,6 +17,8 @@ import { Turnstile } from '@marsidev/react-turnstile'; // Correct import
 // Import logo
 import petanNaikLogo from '../images/petannaik_logo.png';
 
+const INITIAL_TURNSTILE_KEY = Date.now(); // For forcing Turnstile re-render
+
 function Register() {
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -28,6 +30,8 @@ function Register() {
     password: '',
     confirmPassword: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false); // For disabling button
+  const [turnstileKey, setTurnstileKey] = useState(INITIAL_TURNSTILE_KEY); // Key to reset Turnstile
 
   const handleChange = (e) => {
     setFormData({
@@ -38,11 +42,13 @@ function Register() {
 
   const handleTurnstileVerify = (token) => {
     setFormData(prev => ({ ...prev, turnstileToken: token }));
+    setError(''); // Clear previous CAPTCHA errors if user re-verifies
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setIsSubmitting(true);
 
     if (!formData.turnstileToken) {
       setError('Please complete the CAPTCHA verification.');
@@ -51,6 +57,7 @@ function Register() {
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
+      setIsSubmitting(false);
       return;
     }
 
@@ -75,13 +82,20 @@ function Register() {
         login(data.user); // data.user should contain { id, name, email } from backend
         navigate('/');
       } else {
-        setError(data.message || 'Registration failed. Please try again.');
-        // Optionally, reset Turnstile:
-        // if (window.turnstile && typeof window.turnstile.reset === 'function') window.turnstile.reset();
+        const errorMessage = data.message || 'Registration failed. Please try again.';
+        setError(errorMessage);
+        // If the error is related to Turnstile (e.g., timeout-or-duplicate), reset it
+        if (data.errors && (data.errors.includes('timeout-or-duplicate') || data.errors.includes('invalid-input-response'))) {
+          setFormData(prev => ({ ...prev, turnstileToken: '' })); // Clear the token
+          setTurnstileKey(Date.now()); // Change key to force re-render of Turnstile
+          setError('CAPTCHA verification issue. Please complete the verification again.');
+        }
       }
     } catch (networkError) {
       console.error('Registration API call failed:', networkError);
       setError('Could not connect to the server. Please try again later.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
   // Function to manually reset Turnstile if needed (optional, requires library support for window.turnstile.reset())
@@ -176,6 +190,7 @@ function Register() {
               <Box sx={{ mt: 2, mb: 1, display: 'flex', justifyContent: 'center' }}>
                 <Turnstile
                   siteKey={process.env.REACT_APP_TURNSTILE_SITE_KEY} // Use environment variable
+                  key={turnstileKey} // Add key for re-rendering
                   onSuccess={handleTurnstileVerify}
                   // onError, onExpire can also be handled
                   // theme="light" or "dark" or "auto"
@@ -189,6 +204,7 @@ function Register() {
                 fullWidth
                 variant="contained"
                 sx={{ mt: 3, mb: 2, bgcolor: '#166534', '&:hover': { bgcolor: '#14532d' } }}
+                disabled={isSubmitting} // Disable button when submitting
               >
                 Sign Up
               </Button>

@@ -1,6 +1,7 @@
 // reactapp-backend/server.js
 require('dotenv').config(); // Load environment variables from .env file
 const express = require('express');
+const { v4: uuidv4 } = require('uuid'); // Import uuid
 const fetch = require('node-fetch'); // Or use global fetch if available in your Node version
 const { v4: uuidv4 } = require('uuid'); // Import uuid
 const cors = require('cors');
