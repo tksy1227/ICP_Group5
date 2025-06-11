@@ -69,6 +69,11 @@ async function verifyTurnstileToken(token, remoteIp) {
 
 // --- API Routes ---
 
+// Root endpoint
+app.get('/', (req, res) => {
+    res.status(200).send('PetanNaik Backend is running!');
+});
+
 // Registration Endpoint
 app.post('/api/register', async (req, res) => {
     const { name, email, password, turnstileToken } = req.body;
