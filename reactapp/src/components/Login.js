@@ -49,7 +49,7 @@ function Login() {
     }
 
     try {
-      const response = await fetch('http://localhost:3001/api/login', { // Ensure backend is running on this port
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

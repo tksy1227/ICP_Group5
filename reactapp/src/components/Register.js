@@ -55,7 +55,7 @@ function Register() {
     }
 
     try {
-      const response = await fetch('http://localhost:3001/api/register', { // Ensure backend is running
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
