@@ -7,7 +7,7 @@ import uuid
 from sqlalchemy.orm import Session
 from datetime import datetime 
 
-from schemas import RecommendedProductListItem
+from schemas.schemas import RecommendedProductListItem
 from database.models import RecommendationLog
 
 MODEL_DIR = "../"
