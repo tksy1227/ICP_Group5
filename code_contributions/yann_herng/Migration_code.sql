@@ -34,3 +34,22 @@ WITH (FORMAT csv, HEADER true);
 COPY np2025_sale_order_item
 FROM '/tmp/np2025_sale_order_item.csv'
 WITH (FORMAT csv, HEADER true);
+
+-- name and unit_of_measurement was swapped in the new dataset
+CREATE TABLE IF NOT EXISTS public.np2025_product_final
+(
+    id character varying COLLATE pg_catalog."default" NOT NULL,
+    sku character varying COLLATE pg_catalog."default" NOT NULL,
+    type character varying COLLATE pg_catalog."default" NOT NULL,
+    name character varying COLLATE pg_catalog."default",
+    unit_of_measurement character varying COLLATE pg_catalog."default" NOT NULL,
+    price numeric NOT NULL,
+    description character varying COLLATE pg_catalog."default" NOT NULL
+);
+
+ALTER TABLE np2025_product_final
+ALTER COLUMN unit_of_measurement DROP NOT NULL;
+
+COPY np2025_product_final
+FROM '/tmp/np2025_product.csv'
+WITH (FORMAT csv, HEADER true);
