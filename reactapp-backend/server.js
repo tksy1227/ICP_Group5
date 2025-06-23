@@ -4,6 +4,7 @@ const express = require('express');
 const { v4: uuidv4 } = require('uuid'); // Import uuid
 const fetch = require('node-fetch'); 
 const cors = require('cors');
+const { Pool } = require('pg'); // import PostgreSQL client
 
 const app = express();
 const PORT = process.env.PORT || 3001; // Backend will run on this port
@@ -18,6 +19,25 @@ if (!TURNSTILE_SECRET_KEY) {
     console.error("FATAL ERROR: CLOUDFLARE_TURNSTILE_SECRET_KEY is not set in .env file.");
     process.exit(1); // Exit if the secret key is not found
 }
+
+// ADD POSTGRESQL CONNECTION HERE - AFTER ENVIRONMENT VARIABLES
+// --- PostgreSQL Database Connection ---
+const pool = new Pool({
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    database: process.env.DB_NAME,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+});
+
+// Test PostgreSQL connection
+pool.query('SELECT NOW()', (err, res) => {
+    if (err) {
+        console.error('Database connection error:', err);
+    } else {
+        console.log('Connected to PostgreSQL successfully');
+    }
+});
 
 // --- Middleware ---
 // Configure CORS
@@ -73,6 +93,55 @@ async function verifyTurnstileToken(token, remoteIp) {
 // Root endpoint
 app.get('/', (req, res) => {
     res.status(200).send('PetanNaik Backend is running!');
+});
+
+// Get all products from np2025_product_final table
+app.get('/api/products', async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT 
+                id,
+                sku,
+                type,
+                name,
+                unit_of_measurement,
+                price,
+                description
+            FROM public.np2025_product_final 
+            ORDER BY id
+        `);
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Error fetching products:', err);
+        res.status(500).json({ error: 'Failed to fetch products from database' });
+    }
+});
+
+// Get single product by ID
+app.get('/api/products/:productId', async (req, res) => {
+    const { productId } = req.params;
+    try {
+        const result = await pool.query(`
+            SELECT 
+                id,
+                sku,
+                type,
+                name,
+                unit_of_measurement,
+                price,
+                description
+            FROM public.np2025_product_final 
+            WHERE id = $1
+        `, [productId]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error('Error fetching product:', err);
+        res.status(500).json({ error: 'Failed to fetch product from database' });
+    }
 });
 
 // Registration Endpoint
