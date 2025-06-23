@@ -164,6 +164,119 @@ const ProductDetailPage = () => {
               {/* Placeholder for more details like specifications, brand, etc. */}
               <Typography variant="caption" display="block" sx={{mt: 2, color: 'text.disabled'}}>Product ID: {product.product_id}</Typography>
 
+{/* ADD THE HARDCODED RECOMMENDATIONS HERE - RIGHT AFTER THE PRODUCT ID LINE */}
+              <Box sx={{ mt: 4 }}>
+                <Typography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 'bold', color: '#166534', mb: 3 }}>
+                  Frequently Bought Together
+                </Typography>
+                <Grid container spacing={3} justifyContent="center" alignItems="stretch">
+                  {/* Product 1: Garlon 670 EC - 100ml */}
+                  <Grid item xs={12} sm={6} md={4}>
+                    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', minHeight: 380 }}>
+                      <CardMedia
+                        component="img"
+                        height="180"
+                        image={allProducts.find(p => p.product_id === 'garlon-670ec-100ml')?.image || 'https://via.placeholder.com/300x200/22c55e/ffffff?text=Garlon+670+EC+100ml'}
+                        alt="Garlon 670 EC - 100ml"
+                        sx={{ objectFit: 'cover' }}
+                      />
+                      <CardContent sx={{ flexGrow: 1 }}>
+                        <Typography gutterBottom variant="h6" component="div" sx={{ fontSize: '1rem', fontWeight: 'medium', minHeight: '3.2em', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                          Garlon 670 EC - 100ml
+                        </Typography>
+                        <Typography variant="body1" color="#166534" sx={{ fontWeight: 'bold', mb: 1 }}>
+                          {formatCurrency(49350)}
+                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Rating name="rating-garlon-100ml" value={4.7} precision={0.1} readOnly size="small" />
+                        </Box>
+                      </CardContent>
+                      <CardActions sx={{ p: 2, pt: 0, mt: 'auto' }}>
+                        <Button 
+                          fullWidth 
+                          variant="contained" 
+                          startIcon={<ShoppingCartIcon />} 
+                          onClick={() => navigate('/products/garlon-670ec-100ml')}
+                          sx={{ bgcolor: '#22c55e', '&:hover': { bgcolor: '#16a34a' } }}
+                        >
+                          View Product
+                        </Button>
+                      </CardActions>
+                    </Card>
+                  </Grid>
+
+                  {/* Product 2: Bomb Up 520 SL - 20 Liters */}
+                  <Grid item xs={12} sm={6} md={4}>
+                    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', minHeight: 380 }}>
+                      <CardMedia
+                        component="img"
+                        height="180"
+                        image={allProducts.find(p => p.product_id === 'bombup-520sl-20l')?.image || 'https://via.placeholder.com/300x200/22c55e/ffffff?text=Bomb+Up+520+SL'}
+                        alt="Bomb Up 520 SL - 20 Liters"
+                        sx={{ objectFit: 'cover' }}
+                      />
+                      <CardContent sx={{ flexGrow: 1 }}>
+                        <Typography gutterBottom variant="h6" component="div" sx={{ fontSize: '1rem', fontWeight: 'medium', minHeight: '3.2em', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                          Bomb Up 520 SL - 20 Liters
+                        </Typography>
+                        <Typography variant="body1" color="#166534" sx={{ fontWeight: 'bold', mb: 1 }}>
+                          {formatCurrency(1021558)}
+                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Rating name="rating-bombup" value={4.5} precision={0.1} readOnly size="small" />
+                        </Box>
+                      </CardContent>
+                      <CardActions sx={{ p: 2, pt: 0, mt: 'auto' }}>
+                        <Button 
+                          fullWidth 
+                          variant="contained" 
+                          startIcon={<ShoppingCartIcon />} 
+                          onClick={() => navigate('/products/bombup-520sl-20l')}
+                          sx={{ bgcolor: '#22c55e', '&:hover': { bgcolor: '#16a34a' } }}
+                        >
+                          View Product
+                        </Button>
+                      </CardActions>
+                    </Card>
+                  </Grid>
+
+                  {/* Product 3: Furadan 3GR 2Kg */}
+                  <Grid item xs={12} sm={6} md={4}>
+                    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', minHeight: 380 }}>
+                      <CardMedia
+                        component="img"
+                        height="180"
+                        image={allProducts.find(p => p.product_id === 'furadan-3gr-2kg')?.image || 'https://via.placeholder.com/300x200/22c55e/ffffff?text=Furadan+3GR+2Kg'}
+                        alt="Furadan 3GR 2Kg"
+                        sx={{ objectFit: 'cover' }}
+                      />
+                      <CardContent sx={{ flexGrow: 1 }}>
+                        <Typography gutterBottom variant="h6" component="div" sx={{ fontSize: '1rem', fontWeight: 'medium', minHeight: '3.2em', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                          Furadan 3GR 2Kg
+                        </Typography>
+                        <Typography variant="body1" color="#166534" sx={{ fontWeight: 'bold', mb: 1 }}>
+                          {formatCurrency(54503)}
+                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Rating name="rating-furadan" value={4.6} precision={0.1} readOnly size="small" />
+                        </Box>
+                      </CardContent>
+                      <CardActions sx={{ p: 2, pt: 0, mt: 'auto' }}>
+                        <Button 
+                          fullWidth 
+                          variant="contained" 
+                          startIcon={<ShoppingCartIcon />} 
+                          onClick={() => navigate('/products/furadan-3gr-2kg')}
+                          sx={{ bgcolor: '#22c55e', '&:hover': { bgcolor: '#16a34a' } }}
+                        >
+                          View Product
+                        </Button>
+                      </CardActions>
+                    </Card>
+                  </Grid>
+                </Grid>
+              </Box>
+
               {/* Frequently Bought Together Section - MOVED HERE */}
               {isLoggedIn && frequentlyBought.length > 0 && (
                 <Box sx={{ mt: 4 }}> {/* Changed Grid item to Box and adjusted margin */}
