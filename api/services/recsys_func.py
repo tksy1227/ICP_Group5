@@ -5,7 +5,7 @@ import pandas as pd
 import os
 import uuid
 from sqlalchemy.orm import Session
-from datetime import datetime 
+from datetime import datetime, timezone
 
 from schemas.schemas import RecommendedProductListItem
 from database.models import RecommendationLog
@@ -51,7 +51,7 @@ def get_user_recommendations(user_id: UUID, db: Session, top_n: int = 10) -> Lis
                 recommendation_id=recommendation_id,
                 user_id=user_id,
                 product_id=uuid.UUID(product_id),  # ensure this is a UUID
-                timestamp=datetime.utcnow()
+                timestamp=datetime.now(timezone.utc)
             ))
 
             results.append(RecommendedProductListItem(
@@ -107,7 +107,7 @@ def get_product_recommendations(product_id: UUID, db: Session, top_n: int = 10) 
             recommendation_id=recommendation_id,
             user_id="13f5223e-f04a-4fa8-9ef2-cf36060f0d6d",  # No user context for product-based recommendation (require changes)
             product_id=sim_pid,
-            timestamp=datetime.utcnow()
+            timestamp=datetime.now(timezone.utc)
         ))
 
         results.append(RecommendedProductListItem(
