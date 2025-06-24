@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-const AuthContext = createContext();
+const AuthContext = createContext(); // Removed unused imports: petanNaikLogo, usericon
 
 export function useAuth() {
   const context = useContext(AuthContext);

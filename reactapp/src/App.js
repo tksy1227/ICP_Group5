@@ -13,7 +13,11 @@ import AboutPage from './components/AboutPage'; // Import AboutPage
 import ProductsPage from './components/ProductsPage'; // Import ProductsPage
 import RecommendationsPage from './components/RecommendationsPage'; // Import RecommendationsPage
 import ProductDetailPage from './components/ProductDetailPage'; // Import ProductDetailPage
+import NPKGoldGuidePage from './components/NPKGoldGuidePage'; // Import new guide page
+import LeafSpotGuidePage from './components/LeafSpotGuidePage'; // Import new guide page
+import HarvestingGuidePage from './components/HarvestingGuidePage'; // Import new guide page
 import Layout from './components/Layout';
+import React from 'react'; // Import React
 
 function App() {
   return (
@@ -26,7 +30,7 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route element={<Layout />}>
-                  <Route path="/home" element={<Home />} />
+                  <Route path="/" element={<Home />} />
                   <Route path="/chatbot" element={<Chatbot />} />
                   <Route path="/cart" element={<CartPage />} /> {/* Add CartPage route */}
                   <Route path="/profile" element={<UserProfilePage />} /> {/* Add UserProfilePage route */}
@@ -34,8 +38,10 @@ function App() {
                   <Route path="/products" element={<ProductsPage />} /> {/* Add ProductsPage route */}
                   <Route path="/recommendations" element={<RecommendationsPage />} /> {/* Add RecommendationsPage route */}
                   <Route path="/products/:productId" element={<ProductDetailPage />} /> {/* Dynamic Product Detail Route */}
+                  <Route path="/recommendations/npk-gold-guide" element={<NPKGoldGuidePage />} /> {/* NPK Gold Guide Route */}
+                  <Route path="/recommendations/leaf-spot-guide" element={<LeafSpotGuidePage />} /> {/* Leaf Spot Guide Route */}
+                  <Route path="/recommendations/harvesting-guide" element={<HarvestingGuidePage />} /> {/* Harvesting Guide Route */}
                 </Route>
-                <Route path="/" element={<Home />} />
               </Routes>
             </Router>
           </CartProvider>

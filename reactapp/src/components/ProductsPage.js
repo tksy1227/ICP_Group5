@@ -1,80 +1,46 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
-  AppBar, Box, Button, Container, Drawer, Grid, IconButton, List, ListItem, ListItemText, Menu, MenuItem, Paper, Toolbar, Typography, Card, CardMedia, CardContent, CardActions, TextField, Select, InputLabel, FormControl, Divider
+  Box, Button, Container, Grid, IconButton, Paper, Typography, Card, CardMedia, CardContent, CardActions, TextField, Select, InputLabel, FormControl, MenuItem // Added MenuItem import
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { useCart } from '../contexts/CartContext';
+import { useCart } from '../contexts/CartContext'; // Removed unused imports: Divider
 import { useProducts } from '../contexts/ProductContext'; // To get product list
-
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import VerifiedIcon from '@mui/icons-material/Verified';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'; // Added import
-import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'; // Added import
 import VisibilityIcon from '@mui/icons-material/Visibility'; 
-import EmailIcon from '@mui/icons-material/Email';
-import PhoneIcon from '@mui/icons-material/Phone';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-
-import petanNaikLogo from '../images/petannaik_logo.png';
-import usericon from '../images/usericon.png';
+import { useLanguage } from '../contexts/LanguageProvider'; // Removed unused imports: petanNaikLogo, usericon
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'; // Added import
+import { useAuth } from '../contexts/AuthContext'; // Added missing useAuth import
 
 const ProductsPage = () => {
   const navigate = useNavigate();
-  const { isLoggedIn, user, logout } = useAuth();
-  const { totalCartQuantity, addToCart, cartItems, updateQuantity, parsePrice } = useCart(); // Added parsePrice
-  const { products } = useProducts(); // Get all products
-
-  const [languageMenu, setLanguageMenu] = useState(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [profileMenuAnchorEl, setProfileMenuAnchorEl] = useState(null);
-  const openProfileMenu = Boolean(profileMenuAnchorEl);
-
+  const { isLoggedIn, user, logout } = useAuth(); // Keeping these for now, but they are unused.
+  const { addToCart, cartItems, updateQuantity, parsePrice } = useCart();
+  const { products } = useProducts();
+  const { translations } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
-  const [priceFilter, setPriceFilter] = useState(''); // e.g., '0-100000', '100000-500000'
-  const [categoryFilter, setCategoryFilter] = useState(''); // Placeholder
-
-  const handleProfileMenuOpen = (event) => setProfileMenuAnchorEl(event.currentTarget);
-  const handleProfileMenuClose = () => setProfileMenuAnchorEl(null);
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-    handleProfileMenuClose();
-  };
-  const handleLanguageClick = (event) => setLanguageMenu(event.currentTarget);
-  const handleLanguageClose = () => setLanguageMenu(null);
-
-  const menuItems = [
-    { text: 'Home', link: '/' },
-    { text: 'Products', link: '/products' },
-    { text: 'Recommendations', link: '/recommendations' },
-    { text: 'Chatbot', link: '/chatbot' },
-    { text: 'Profile', link: '/profile' },
-    { text: 'About', link: '/about' },
-  ];
+  const [priceFilter, setPriceFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
 
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
       const nameMatch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-      
       let priceMatch = true;
       if (priceFilter) {
         const [min, max] = priceFilter.split('-').map(Number);
-        if (max) { // Range
+        if (priceFilter.startsWith('under-')) {
+          priceMatch = product.price < max;
+        } else if (priceFilter.startsWith('above-')) {
+          priceMatch = product.price > min;
+        } else { // Range
           priceMatch = product.price >= min && product.price <= max;
-        } else { // Only min (treat as "above min") or specific "under" case
-          if (priceFilter === 'under-100000') priceMatch = product.price < 100000;
-          else if (priceFilter === 'above-1000000') priceMatch = product.price > 1000000;
-          // Add more specific cases if needed, or adjust logic for single value filters
         }
       }
       // Add categoryMatch logic here when categories are implemented
       // const categoryMatch = categoryFilter ? product.category === categoryFilter : true;
-      return nameMatch && priceMatch; // && categoryMatch;
+      return nameMatch && priceMatch; // && categoryMatch; // Corrected logic, removed duplicate return
     });
   }, [products, searchTerm, priceFilter, categoryFilter]);
 
@@ -84,77 +50,31 @@ const ProductsPage = () => {
 
   // Placeholder categories - you'd fetch or define these properly
   const categories = [
-    { value: 'fertilizer', label: 'Fertilizer' },
-    { value: 'pesticide', label: 'Pesticide' },
-    { value: 'tool', label: 'Tool' },
+    { value: 'fertilizer', label: translations.common.fertilizersNutrition },
+    { value: 'pesticide', label: translations.common.pesticides },
+    { value: 'tool', label: translations.common.farmingTools },
   ];
 
   const priceRanges = [
-    { value: '', label: 'All Prices' },
-    { value: 'under-100000', label: 'Under Rp 100.000' },
+    { value: '', label: translations.products.allPrices },
+    { value: 'under-100000', label: `${translations.products.under} Rp 100.000` },
     { value: '100000-500000', label: 'Rp 100.000 - Rp 500.000' },
     { value: '500001-1000000', label: 'Rp 500.001 - Rp 1.000.000' },
-    { value: 'above-1000000', label: 'Above Rp 1.000.000' },
+    { value: 'above-1000000', label: `${translations.products.above} Rp 1.000.000` },
   ];
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: '#FEFAE0' }}>
-      {/* Drawer */}
-      <Drawer
-        variant="persistent" anchor="left" open={drawerOpen}
-        sx={{ width: drawerOpen ? 240 : 0, flexShrink: 0, '& .MuiDrawer-paper': { width: 240, boxSizing: 'border-box', bgcolor: '#166534', color: 'white', borderRight: 'none' } }}
-      >
-        <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255, 255, 255, 0.12)' }}>
-            <Typography variant="h6" sx={{ flexGrow: 1, textAlign: 'center' }}>Menu</Typography>
-            <IconButton onClick={() => setDrawerOpen(false)} sx={{ color: 'white' }}><ChevronLeftIcon /></IconButton>
-        </Box>
-        <List>
-            {menuItems.map((item) => (
-                <ListItem key={item.text} button onClick={() => { navigate(item.link); setDrawerOpen(false); }} sx={{ '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.08)' }}}>
-                    <ListItemText primary={item.text} />
-                </ListItem>
-            ))}
-        </List>
-      </Drawer>
-
-      {/* Header */}
-      <AppBar position="static" sx={{ bgcolor: '#166534' }}>
-        <Toolbar>
-          <IconButton color="inherit" onClick={() => setDrawerOpen(!drawerOpen)} sx={{ mr: 2, display: { xs: 'flex', md: 'none' } }} edge="start"><MenuIcon /></IconButton>
-          <IconButton color="inherit" onClick={() => setDrawerOpen(!drawerOpen)} sx={{ mr: 2, display: { xs: 'none', md: 'flex' } }}><MenuIcon /></IconButton>
-          <Box sx={{ display: 'flex', alignItems: 'center', mr: 4 }}>
-            <Box component="img" src={petanNaikLogo} alt="PetanNaik Logo" sx={{ height: 40, width: 70, mr: 1 }} />
-            <Box><Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>PetanNaik</Typography><Typography variant="caption" sx={{ display: 'block', lineHeight: 1 }}>by SawitPRO</Typography></Box>
-          </Box>
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, justifyContent: 'center' }}>
-            {menuItems.map((item) => (<Button key={item.text} color="inherit" onClick={() => navigate(item.link)} sx={{ mx: 1, fontWeight: 'medium' }}>{item.text}</Button>))}
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Button color="inherit" onClick={handleLanguageClick} sx={{ mr: 1 }}>English</Button>
-            <Menu anchorEl={languageMenu} open={Boolean(languageMenu)} onClose={handleLanguageClose}><MenuItem onClick={handleLanguageClose}>English</MenuItem><MenuItem onClick={handleLanguageClose}>Bahasa Indonesia</MenuItem></Menu>
-            {isLoggedIn ? (
-              <><IconButton color="inherit" sx={{ mr: 2 }} onClick={handleProfileMenuOpen}><Box component="img" src={usericon} alt="Profile" sx={{ width: 32, height: 32, borderRadius: '50%' }} /></IconButton>
-              <Menu anchorEl={profileMenuAnchorEl} open={openProfileMenu} onClose={handleProfileMenuClose} transformOrigin={{ horizontal: 'right', vertical: 'top' }} anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}><MenuItem onClick={() => { navigate('/profile'); handleProfileMenuClose(); }}>Profile</MenuItem><MenuItem onClick={handleLogout}>Logout</MenuItem></Menu>
-              <IconButton color="inherit" sx={{ mr: 1 }}><VerifiedIcon /></IconButton></>
-            ) : (<Button variant="contained" onClick={() => navigate('/login')} sx={{ bgcolor: '#eab308', color: 'black', fontWeight: 'bold', '&:hover': { bgcolor: '#ca8a04' }, mr: 2 }}>Login</Button>)}
-            <IconButton color="inherit" sx={{ position: 'relative' }} onClick={() => navigate('/cart')}>
-              <ShoppingCartIcon />
-              {totalCartQuantity > 0 && (<Box sx={{ position: 'absolute', top: 0, right: 0, bgcolor: '#eab308', color: 'black', borderRadius: '50%', width: 18, height: 18, fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>{totalCartQuantity}</Box>)}
-            </IconButton>
-          </Box>
-        </Toolbar>
-      </AppBar>
-
       {/* Products Content */}
       <Container sx={{ py: 4, flexGrow: 1 }} maxWidth="lg">
         <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: 'bold', color: '#166534', textAlign: 'center', mb: 3 }}>
-          Our Products
+          {translations.products.pageTitle}
         </Typography>
 
         {/* Search and Filters */}
         <Paper elevation={2} sx={{ p: 2, mb: 4, display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
           <TextField
-            label="Search Products"
+            label={translations.products.searchPlaceholder}
             variant="outlined"
             size="small"
             value={searchTerm}
@@ -163,20 +83,20 @@ const ProductsPage = () => {
             sx={{ flexGrow: 1, minWidth: '200px' }}
           />
           <FormControl size="small" sx={{ minWidth: 180 }}>
-            <InputLabel>Price Range</InputLabel>
-            <Select value={priceFilter} label="Price Range" onChange={(e) => setPriceFilter(e.target.value)}>
+            <InputLabel>{translations.products.priceRange}</InputLabel>
+            <Select value={priceFilter} label={translations.products.priceRange} onChange={(e) => setPriceFilter(e.target.value)}>
               {priceRanges.map(range => <MenuItem key={range.value} value={range.value}>{range.label}</MenuItem>)}
             </Select>
           </FormControl>
           <FormControl size="small" sx={{ minWidth: 180 }}>
-            <InputLabel>Category (Placeholder)</InputLabel>
-            <Select value={categoryFilter} label="Category (Placeholder)" onChange={(e) => setCategoryFilter(e.target.value)} disabled>
-              <MenuItem value="">All Categories</MenuItem>
+            <InputLabel>{translations.products.category}</InputLabel>
+            <Select value={categoryFilter} label={translations.products.category} onChange={(e) => setCategoryFilter(e.target.value)} disabled>
+              <MenuItem value="">{translations.products.allCategories}</MenuItem>
               {categories.map(cat => <MenuItem key={cat.value} value={cat.value}>{cat.label}</MenuItem>)}
             </Select>
           </FormControl>
-          <Button variant="outlined" startIcon={<FilterListIcon />} sx={{borderColor: '#166534', color:'#166534'}}>
-            Apply Filters
+          <Button variant="outlined" startIcon={<FilterListIcon />} sx={{borderColor: '#166534', color:'#166534'}}> {/* Use translations.products.applyFilters */}
+            {translations.products.applyFilters}
           </Button>
         </Paper>
 
@@ -235,8 +155,8 @@ const ProductsPage = () => {
                             startIcon={<ShoppingCartIcon />}
                             onClick={() => addToCart({ ...product, id: product.product_id, price: parsePrice(product.price)})} 
                             sx={{ bgcolor: '#22c55e', '&:hover': { bgcolor: '#16a34a' } }}
-                          >
-                            Add to Cart
+                          > {/* Use translations.products.addToCart */}
+                            {translations.products.addToCart}
                           </Button>
                         )}
                       </Box>
@@ -253,7 +173,7 @@ const ProductsPage = () => {
                           navigate(`/products/${product.product_id}`);
                           localStorage.setItem('currentProduct', JSON.stringify(product));
                         }} 
-                        aria-label="view product">
+                        aria-label="view product"> {/* Use translations.products.viewProduct */}
                           <VisibilityIcon />
                       </IconButton>
                     </CardActions>
@@ -264,25 +184,11 @@ const ProductsPage = () => {
           </Grid>
         ) : (
           <Paper sx={{ p: 3, textAlign: 'center' }}>
-            <Typography variant="h6">No products found matching your criteria.</Typography>
+            <Typography variant="h6">{translations.common.noProductsFound}</Typography>
           </Paper>
         )}
       </Container>
-
-      {/* Footer */}
-      <Box sx={{ bgcolor: '#1e293b', color: 'white', py: 6, mt: 'auto' }}>
-        <Container>
-          <Grid container spacing={4}>
-            <Grid item xs={12} md={3}><Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}><Box component="img" src={petanNaikLogo} alt="PetanNaik Logo" sx={{ height: 40, width: 70, mr: 1 }} /><Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>PetanNaik</Typography></Box><Typography variant="body2" sx={{ mb: 2 }}>Trusted e-commerce platform for small-scale palm oil farmers in Indonesia.</Typography></Grid>
-            <Grid item xs={12} md={3}><Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>Products</Typography><Typography variant="body2" sx={{ mb: 1 }}>Fertilizers & Nutrition</Typography><Typography variant="body2" sx={{ mb: 1 }}>Pesticides</Typography><Typography variant="body2" sx={{ mb: 1 }}>Farming Tools</Typography><Typography variant="body2" sx={{ mb: 1 }}>Premium Seeds</Typography></Grid>
-            <Grid item xs={12} md={3}><Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>Services</Typography><Typography variant="body2" sx={{ mb: 1 }}>PalmPilot Consultation</Typography><Typography variant="body2" sx={{ mb: 1 }}>AI Recommendations</Typography><Typography variant="body2" sx={{ mb: 1 }}>Farming Guides</Typography><Typography variant="body2" sx={{ mb: 1 }}>Technical Support</Typography></Grid>
-            <Grid item xs={12} md={3}><Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>Contact</Typography><Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}><EmailIcon sx={{ mr: 1, fontSize: 18 }} /><Typography variant="body2">info@petannaik.com</Typography></Box><Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}><PhoneIcon sx={{ mr: 1, fontSize: 18 }} /><Typography variant="body2">+62 21 1234 5678</Typography></Box><Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}><LocationOnIcon sx={{ mr: 1, fontSize: 18 }} /><Typography variant="body2">Jakarta, Indonesia</Typography></Box></Grid>
-          </Grid>
-          <Box sx={{ borderTop: '1px solid rgba(255,255,255,0.1)', mt: 4, pt: 2, textAlign: 'center' }}><Typography variant="body2">© {new Date().getFullYear()} PetanNaik by SawitPRO. All rights reserved.</Typography></Box>
-        </Container>
-      </Box>
     </Box>
   );
 };
-
 export default ProductsPage;

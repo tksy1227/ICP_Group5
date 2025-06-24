@@ -1,54 +1,50 @@
 import React, { useState } from 'react';
 import {
-  AppBar, Box, Button, Container, Drawer, Grid, IconButton, List, ListItem, ListItemText, Menu, MenuItem, Paper, Toolbar, Typography, Card, CardContent, CardMedia, CardActions, Rating
+  Box, Button, Container, Grid, Paper, Typography, Card, CardContent, CardMedia, CardActions, Rating, IconButton, 
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import VerifiedIcon from '@mui/icons-material/Verified';
 import LightbulbIcon from '@mui/icons-material/Lightbulb'; // Icon for recommendations
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import EmailIcon from '@mui/icons-material/Email';
-import PhoneIcon from '@mui/icons-material/Phone';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-
-import petanNaikLogo from '../images/petannaik_logo.png';
-import usericon from '../images/usericon.png';
+// Import new guide images
+import NPKGoldImage from '../images/guides/NPKGold.jpg';
+import LeafSpotImage from '../images/guides/LeafSpot.jpg';
+import HarvestingImage from '../images/guides/Harvesting.jpg';
 
 // Import product images from ProductContext.js (same as Home.js for consistency)
 import sawitproFertilizer50kgPlus40kgBunchAshImage from '../images/products/SawitPRO_Fertilizer_50kg_+_40kg_Bunch_Ash.avif';
 import siBrondolSawitproTshirtSizeXlImage from '../images/products/Si_Brondol_SawitPRO_T-shirt_size_XL.avif';
 import furadan3gr2kgImage from '../images/products/Furadan_3GR_2Kg.avif';
 
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
+import { useLanguage } from '../contexts/LanguageProvider';
 // Placeholder data for recommendations - replace with actual logic later
 const sampleRecommendations = [
   {
     id: 'rec1',
-    title: 'Boost Your Yield with NPK Gold',
+    title: 'boostYieldWithNPKGold', // Key for translation
     description: 'Our top-rated NPK Gold fertilizer is showing excellent results for farmers in your region. Consider it for your next fertilization cycle.',
-    image: 'https://images.unsplash.com/photo-1635188557504-7cc236e3d0e5?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', // Placeholder
-    link: '/products', // Link to product or product page
+    image: NPKGoldImage,
+    link: '/recommendations/npk-gold-guide',
     category: 'Fertilizer'
   },
   {
-    id: 'rec2',
-    title: 'Combat Leaf Spot Effectively',
-    description: 'Seeing signs of leaf spot? Our new systemic fungicide provides long-lasting protection. Learn more about application techniques.',
-    image: 'https://images.unsplash.com/photo-1620453325704-70e446e3c4c0?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', // Placeholder
-    link: '/products',
+    id: 'rec2', 
+    title: 'combatLeafSpotEffectively', // Key for translation
+    description: 'Seeing signs of leaf spot? Our new systemic fungicide provides long-lasting protection. Learn more about application techniques.', 
+    image: LeafSpotImage,
+    link: '/recommendations/leaf-spot-guide',
     category: 'Pest Control'
   },
   {
-    id: 'rec3',
-    title: 'Optimal Harvesting Guide',
-    description: 'Maximize your oil extraction rates by following our updated guide on optimal harvesting times and techniques.',
-    image: 'https://images.unsplash.com/photo-1598887142487-3c854d51d2c7?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60', // Placeholder
-    link: '/guides/harvesting', // Link to a guide page (hypothetical)
+    id: 'rec3', 
+    title: 'optimalHarvestingGuide', // Key for translation
+    description: 'Maximize your oil extraction rates by following our updated guide on optimal harvesting times and techniques.', 
+    image: HarvestingImage,
+    link: '/recommendations/harvesting-guide',
     category: 'Farming Practices'
   }
 ];
@@ -83,105 +79,35 @@ const recommendedProductsData = [
 
 const RecommendationsPage = () => {
   const navigate = useNavigate();
-  const { isLoggedIn, user, logout } = useAuth();
-  const { totalCartQuantity, cartItems, addToCart, updateQuantity, parsePrice } = useCart();
-  
-  const [languageMenu, setLanguageMenu] = useState(null);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [profileMenuAnchorEl, setProfileMenuAnchorEl] = useState(null);
-  const openProfileMenu = Boolean(profileMenuAnchorEl);
-
-  const handleProfileMenuOpen = (event) => setProfileMenuAnchorEl(event.currentTarget);
-  const handleProfileMenuClose = () => setProfileMenuAnchorEl(null);
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-    handleProfileMenuClose();
-  };
-  const handleLanguageClick = (event) => setLanguageMenu(event.currentTarget);
-  const handleLanguageClose = () => setLanguageMenu(null);
-
-  const menuItems = [
-    { text: 'Home', link: '/' },
-    { text: 'Products', link: '/products' },
-    { text: 'Recommendations', link: '/recommendations' },
-    { text: 'Chatbot', link: '/chatbot' },
-    { text: 'Profile', link: '/profile' },
-    { text: 'About', link: '/about' },
-  ];
+  const { isLoggedIn } = useAuth(); // 'user' and 'logout' are not used here
+  const { cartItems, addToCart, updateQuantity, parsePrice } = useCart();
+  const { translations } = useLanguage();
 
   const formatCurrency = (amount) => { // Helper for displaying price
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
   };
-
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      {/* Drawer */}
-      <Drawer
-        variant="persistent" anchor="left" open={drawerOpen}
-        sx={{ width: drawerOpen ? 240 : 0, flexShrink: 0, '& .MuiDrawer-paper': { width: 240, boxSizing: 'border-box', bgcolor: '#166534', color: 'white', borderRight: 'none' } }}
-      >
-        <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(255, 255, 255, 0.12)' }}>
-            <Typography variant="h6" sx={{ flexGrow: 1, textAlign: 'center' }}>Menu</Typography>
-            <IconButton onClick={() => setDrawerOpen(false)} sx={{ color: 'white' }}><ChevronLeftIcon /></IconButton>
-        </Box>
-        <List>
-            {menuItems.map((item) => (
-                <ListItem key={item.text} button onClick={() => { navigate(item.link); setDrawerOpen(false); }} sx={{ '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.08)' }}}>
-                    <ListItemText primary={item.text} />
-                </ListItem>
-            ))}
-        </List>
-      </Drawer>
-
-      {/* Header */}
-      <AppBar position="static" sx={{ bgcolor: '#166534' }}>
-        <Toolbar>
-          <IconButton color="inherit" onClick={() => setDrawerOpen(!drawerOpen)} sx={{ mr: 2, display: { xs: 'flex', md: 'none' } }} edge="start"><MenuIcon /></IconButton>
-          <IconButton color="inherit" onClick={() => setDrawerOpen(!drawerOpen)} sx={{ mr: 2, display: { xs: 'none', md: 'flex' } }}><MenuIcon /></IconButton>
-          <Box sx={{ display: 'flex', alignItems: 'center', mr: 4 }}>
-            <Box component="img" src={petanNaikLogo} alt="PetanNaik Logo" sx={{ height: 40, width: 70, mr: 1 }} />
-            <Box><Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>PetanNaik</Typography><Typography variant="caption" sx={{ display: 'block', lineHeight: 1 }}>by SawitPRO</Typography></Box>
-          </Box>
-          <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'flex' }, justifyContent: 'center' }}>
-            {menuItems.map((item) => (<Button key={item.text} color="inherit" onClick={() => navigate(item.link)} sx={{ mx: 1, fontWeight: 'medium' }}>{item.text}</Button>))}
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Button color="inherit" onClick={handleLanguageClick} sx={{ mr: 1 }}>English</Button>
-            <Menu anchorEl={languageMenu} open={Boolean(languageMenu)} onClose={handleLanguageClose}><MenuItem onClick={handleLanguageClose}>English</MenuItem><MenuItem onClick={handleLanguageClose}>Bahasa Indonesia</MenuItem></Menu>
-            {isLoggedIn ? (
-              <><IconButton color="inherit" sx={{ mr: 2 }} onClick={handleProfileMenuOpen}><Box component="img" src={usericon} alt="Profile" sx={{ width: 32, height: 32, borderRadius: '50%' }} /></IconButton>
-              <Menu anchorEl={profileMenuAnchorEl} open={openProfileMenu} onClose={handleProfileMenuClose} transformOrigin={{ horizontal: 'right', vertical: 'top' }} anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}><MenuItem onClick={() => { navigate('/profile'); handleProfileMenuClose(); }}>Profile</MenuItem><MenuItem onClick={handleLogout}>Logout</MenuItem></Menu>
-              <IconButton color="inherit" sx={{ mr: 1 }}><VerifiedIcon /></IconButton></>
-            ) : (<Button variant="contained" onClick={() => navigate('/login')} sx={{ bgcolor: '#eab308', color: 'black', fontWeight: 'bold', '&:hover': { bgcolor: '#ca8a04' }, mr: 2 }}>Login</Button>)}
-            <IconButton color="inherit" sx={{ position: 'relative' }} onClick={() => navigate('/cart')}>
-              <ShoppingCartIcon />
-              {totalCartQuantity > 0 && (<Box sx={{ position: 'absolute', top: 0, right: 0, bgcolor: '#eab308', color: 'black', borderRadius: '50%', width: 18, height: 18, fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>{totalCartQuantity}</Box>)}
-            </IconButton>
-          </Box>
-        </Toolbar>
-      </AppBar>
-
       {/* Recommendations Content */}
       <Container sx={{ py: 4, flexGrow: 1 }} maxWidth="xl"> {/* Adjusted padding and maxWidth */}
 
         {!isLoggedIn && (
           <Paper elevation={2} sx={{ p: 3, mb: 4, textAlign: 'center', bgcolor: '#f0fdf4' }}>
-            <Typography variant="h6" sx={{ color: '#15803d', mb:1 }}>
-              Want personalized recommendations?
+            <Typography variant="h6" sx={{ color: '#15803d', mb:1 }}> {/* Use translations.recommendations.personalizedRecommendations */}
+              {translations.recommendations.personalizedRecommendations}
             </Typography>
-            <Typography variant="body1" sx={{ mb: 2 }}>
-              Log in to receive suggestions based on your specific needs and past interactions.
+            <Typography variant="body1" sx={{ mb: 2 }}> {/* Use translations.recommendations.loginToReceiveSuggestions */}
+              {translations.recommendations.loginToReceiveSuggestions}
             </Typography>
             <Button variant="contained" onClick={() => navigate('/login')} sx={{ bgcolor: '#22c55e', '&:hover': { bgcolor: '#16a34a' }}}>
-              Login or Sign Up
+              {translations.recommendations.loginOrSignUp}
             </Button>
           </Paper>
         )}
 
         {/* Section for Recommended Products (like Home page) - MOVED UP */}
         <Typography variant="h3" component="h1" sx={{ fontWeight: 'bold', color: '#166534', textAlign: 'center', mb: 2 }}> {/* Changed to h3, adjusted mb */}
-          You Might Also Like
+          {translations.recommendations.youMightAlsoLike}
         </Typography>
         <Grid container spacing={3} sx={{ mb: 6 }} justifyContent="center"> {/* Added justifyContent */}
           {recommendedProductsData.map((product) => {
@@ -213,11 +139,11 @@ const RecommendationsPage = () => {
                       </Box>
                     </Box>
                   </CardContent>
-                  <CardActions sx={{ p: 2, pt: 0, display: 'flex' }}>
+                  <CardActions sx={{ p: 2, pt: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     {cartItem ? (
                       <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, mr: 1 }}>
-                        <IconButton onClick={() => updateQuantity(product.product_id, cartItem.quantity - 1)} size="small" sx={{ color: '#166534' }} aria-label="reduce quantity">
-                          <RemoveCircleOutlineIcon />
+                       <IconButton onClick={() => updateQuantity(product.product_id, cartItem.quantity - 1)} size="small" sx={{ color: '#166534' }}>
+                           <RemoveCircleOutlineIcon />
                         </IconButton>
                         <Typography sx={{ mx: 1, fontWeight: 'bold', color: '#166534' }}>{cartItem.quantity}</Typography>
                         <IconButton onClick={() => updateQuantity(product.product_id, cartItem.quantity + 1)} size="small" sx={{ color: '#166534' }} aria-label="increase quantity">
@@ -227,11 +153,11 @@ const RecommendationsPage = () => {
                     ) : (
                       <Button
                         variant="contained"
-                        startIcon={<ShoppingCartIcon />}
+                        startIcon={<ShoppingCartIcon  />}
                         onClick={() => addToCart({ ...product, id: product.product_id, price: productPrice })} // Pass product with id and numeric price
                         sx={{ bgcolor: '#22c55e', '&:hover': { bgcolor: '#16a34a' }, flexGrow: 1, mr: 1 }}
                       >
-                        Add to Cart
+                        {translations.products.addToCart}
                       </Button>
                     )}
                     <IconButton 
@@ -249,10 +175,10 @@ const RecommendationsPage = () => {
 
         {/* "Farming Recommendations" title and sub-heading moved here */}
         <Typography variant="h4" component="h2" gutterBottom sx={{ fontWeight: 'bold', color: '#166534', textAlign: 'center', mt: 6, mb: 2 }}> {/* Changed to h4, adjusted margins */}
-          General Farming Insights
+          {translations.recommendations.generalFarmingInsights}
         </Typography>
         <Typography variant="h6" component="p" color="text.secondary" sx={{ textAlign: 'center', mb: 4, maxWidth: '800px', mx: 'auto' }}> {/* Changed to h6, adjusted margins */}
-          Explore guides and tips to enhance your farming practices.
+          {translations.recommendations.exploreGuides}
         </Typography>
         <Grid container spacing={3} justifyContent="center"> {/* Added justifyContent */}
           {sampleRecommendations.map((rec) => (
@@ -271,9 +197,9 @@ const RecommendationsPage = () => {
                   <Typography
                     gutterBottom
                     variant="h6"
-                    component="h2"
+                    component="h2" // Use translations.recommendations[rec.title]
                     sx={{
-                      fontWeight: 'bold',
+                      fontWeight: 'bold', // Use translations.recommendations[rec.title]
                       color: '#166534',
                       display: '-webkit-box',
                       WebkitLineClamp: 2, // Max 2 lines for title
@@ -281,7 +207,7 @@ const RecommendationsPage = () => {
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       minHeight: `calc(1.25rem * 1.6 * 2)`, // Approx. for h6 (adjust if line-height is different)
-                    }}>
+                    }}> {translations.recommendations[rec.title]}
                     {rec.title}
                   </Typography>
                   <Typography variant="body2" color="text.secondary" sx={{
@@ -291,7 +217,7 @@ const RecommendationsPage = () => {
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       minHeight: `calc(1rem * 1.5 * 3)`, // Approx. for body2 (adjust if line-height is different)
-                  }}>
+                  }}> {/* Description is hardcoded in sampleRecommendations, could be moved to translations if needed */}
                     {rec.description}
                   </Typography>
                 </CardContent>
@@ -302,41 +228,20 @@ const RecommendationsPage = () => {
                     onClick={() => navigate(rec.link)}
                     sx={{ borderColor: '#22c55e', color: '#22c55e', '&:hover': { borderColor: '#16a34a', bgcolor: '#f0fdf4' } }}
                   >
-                    Learn More
+                    {translations.recommendations.learnMore}
                   </Button>
                 </CardActions>
               </Card>
             </Grid>
           ))}
         </Grid>
-        
         <Box sx={{textAlign: 'center', mt: 5}}>
-            <Typography variant="h6" sx={{mb: 2}}>Need more specific advice?</Typography>
-            <Button 
-                variant="contained" 
-                size="large" 
-                onClick={() => navigate('/chatbot')}
-                startIcon={<LightbulbIcon />}
-                sx={{ bgcolor: '#eab308', color: 'black', '&:hover': { bgcolor: '#ca8a04' } }}
-            >
-                Ask PalmPilot Assistant
+            <Typography variant="h6" sx={{mb: 2}}>{translations.recommendations.needSpecificAdvice}</Typography>
+            <Button variant="contained" size="large" onClick={() => navigate('/chatbot')} startIcon={<LightbulbIcon />} sx={{ bgcolor: '#eab308', color: 'black', '&:hover': { bgcolor: '#ca8a04' }}}> {/* Use translations.recommendations.askPalmpilot */}
+                {translations.recommendations.askPalmpilot}
             </Button>
         </Box>
-
       </Container>
-
-      {/* Footer */}
-      <Box sx={{ bgcolor: '#1e293b', color: 'white', py: 6, mt: 'auto' }}>
-        <Container>
-          <Grid container spacing={4}>
-            <Grid item xs={12} md={3}><Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}><Box component="img" src={petanNaikLogo} alt="PetanNaik Logo" sx={{ height: 40, width: 70, mr: 1 }} /><Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>PetanNaik</Typography></Box><Typography variant="body2" sx={{ mb: 2 }}>Trusted e-commerce platform for small-scale palm oil farmers in Indonesia.</Typography></Grid>
-            <Grid item xs={12} md={3}><Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>Products</Typography><Typography variant="body2" sx={{ mb: 1 }}>Fertilizers & Nutrition</Typography><Typography variant="body2" sx={{ mb: 1 }}>Pesticides</Typography><Typography variant="body2" sx={{ mb: 1 }}>Farming Tools</Typography><Typography variant="body2" sx={{ mb: 1 }}>Premium Seeds</Typography></Grid>
-            <Grid item xs={12} md={3}><Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>Services</Typography><Typography variant="body2" sx={{ mb: 1 }}>PalmPilot Consultation</Typography><Typography variant="body2" sx={{ mb: 1 }}>AI Recommendations</Typography><Typography variant="body2" sx={{ mb: 1 }}>Farming Guides</Typography><Typography variant="body2" sx={{ mb: 1 }}>Technical Support</Typography></Grid>
-            <Grid item xs={12} md={3}><Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>Contact</Typography><Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}><EmailIcon sx={{ mr: 1, fontSize: 18 }} /><Typography variant="body2">info@petannaik.com</Typography></Box><Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}><PhoneIcon sx={{ mr: 1, fontSize: 18 }} /><Typography variant="body2">+62 21 1234 5678</Typography></Box><Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}><LocationOnIcon sx={{ mr: 1, fontSize: 18 }} /><Typography variant="body2">Jakarta, Indonesia</Typography></Box></Grid>
-          </Grid>
-          <Box sx={{ borderTop: '1px solid rgba(255,255,255,0.1)', mt: 4, pt: 2, textAlign: 'center' }}><Typography variant="body2">© {new Date().getFullYear()} PetanNaik by SawitPRO. All rights reserved.</Typography></Box>
-        </Container>
-      </Box>
     </Box>
   );
 };

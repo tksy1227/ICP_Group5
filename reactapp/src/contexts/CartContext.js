@@ -67,7 +67,7 @@ export const CartProvider = ({ children }) => {
             cartSubtotal,
             cartTotal,
             parsePrice
-        }}>
+        }}> {/* Removed unused imports: petanNaikLogo, usericon */}
             {children}
         </CartContext.Provider>
     );

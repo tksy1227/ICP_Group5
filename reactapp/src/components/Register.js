@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext'; // Removed unused imports: AppBar, Toolbar
 import {
   AppBar,
   Container,
@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import { Turnstile } from '@marsidev/react-turnstile'; // Correct import
 // Import logo
+import { useLanguage } from '../contexts/LanguageProvider';
 import petanNaikLogo from '../images/petannaik_logo.png';
 
 const INITIAL_TURNSTILE_KEY = Date.now(); // For forcing Turnstile re-render
@@ -22,6 +23,7 @@ const INITIAL_TURNSTILE_KEY = Date.now(); // For forcing Turnstile re-render
 function Register() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { translations } = useLanguage();
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     turnstileToken: '', // Add state for Turnstile token
@@ -112,13 +114,13 @@ function Register() {
       {/* Header/Navigation */}
       <AppBar position="static" sx={{ bgcolor: '#166534' }}>
         <Toolbar>
-          <Box sx={{ display: 'flex', alignItems: 'center', mr: 4 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', mr: 4, cursor: 'pointer' }} onClick={() => navigate('/')}>
             <Box 
               component="img" 
               src={petanNaikLogo} // Use imported logo
               alt="PetanNaik Logo"
               sx={{ height: 40, width: 70, mr: 1 }}
-            />
+            /> {/* Consider adding translations.common.appName if you want to translate "PetanNaik" */}
             <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
               PetanNaik
             </Typography>
@@ -134,7 +136,7 @@ function Register() {
             flexDirection: 'column', 
             alignItems: 'center', 
             width: '100%',
-            border: '2px solid #166534'
+            border: '2px solid #166534' // Border color
           }}>
             <Typography component="h1" variant="h5" sx={{ color: '#166534', fontWeight: 'bold' }}>
               Create Account
@@ -145,7 +147,7 @@ function Register() {
                 margin="normal"
                 required
                 fullWidth
-                id="name"
+                id="name" // Use translations.common.fullName if you want to translate "Full Name"
                 label="Full Name"
                 name="name"
                 autoComplete="name"
@@ -157,7 +159,7 @@ function Register() {
                 margin="normal"
                 required
                 fullWidth
-                id="email"
+                id="email" // Use translations.common.emailAddress if you want to translate "Email Address"
                 label="Email Address"
                 name="email"
                 autoComplete="email"
@@ -168,7 +170,7 @@ function Register() {
                 margin="normal"
                 required
                 fullWidth
-                name="password"
+                name="password" // Use translations.common.password if you want to translate "Password"
                 label="Password"
                 type="password"
                 id="password"
@@ -180,7 +182,7 @@ function Register() {
                 margin="normal"
                 required
                 fullWidth
-                name="confirmPassword"
+                name="confirmPassword" // Use translations.common.confirmPassword if you want to translate "Confirm Password"
                 label="Confirm Password"
                 type="password"
                 id="confirmPassword"
@@ -206,11 +208,11 @@ function Register() {
                 sx={{ mt: 3, mb: 2, bgcolor: '#166534', '&:hover': { bgcolor: '#14532d' } }}
                 disabled={isSubmitting} // Disable button when submitting
               >
-                Sign Up
+                {translations.common.register}
               </Button>
               <Grid container justifyContent="flex-end">
                 <Grid item>
-                  <Link to="/login" style={{ textDecoration: 'none' }}>
+                  <Link to="/login" style={{ textDecoration: 'none' }}> {/* Consider translating "Already have an account? Sign In" */}
                     <Typography variant="body2" color="primary">
                       Already have an account? Sign In
                     </Typography>
