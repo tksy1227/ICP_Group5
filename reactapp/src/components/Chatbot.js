@@ -21,7 +21,10 @@ import { v4 as uuidv4 } from 'uuid'; // For unique chat session IDs
 import palmPilotLogo from '../images/petannaik_logo.png'; // Using PetanNaik logo for PalmPilot
 import TranslateIcon from '@mui/icons-material/Translate'; // Added missing import
 
-const CHATBOT_API = "http://127.0.0.1:8000/api/v1/messaging/chatbot";
+
+// Use an environment variable for the API URL. On Render, you will set this in the environment settings for your frontend app.
+// For local development, you can create a .env file in the `reactapp` directory.
+const CHATBOT_API = process.env.REACT_APP_CHATBOT_API_URL || "http://127.0.0.1:8000/api/v1/messaging/chatbot";
 const USER_ID = "13f5223e-f04a-4fa8-9ef2-cf36060f0d6d";
 
 const CHAT_SESSIONS_KEY = 'petanNaikChatSessions';
