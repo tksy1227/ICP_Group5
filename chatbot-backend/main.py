@@ -62,7 +62,6 @@ async def handle_chat(request: ChatRequest):
                 "content": request.message,
             },
         ]
-
         chat_completion = client.chat.completions.create(
             messages=messages,
             model="llama3-8b-8192", # Use a Llama 3 model available on Groq
@@ -76,6 +75,5 @@ async def handle_chat(request: ChatRequest):
         response_text = chat_completion.choices[0].message.content
         return {"message": response_text}
     except Exception as e:
-
         print(f"Error during chat generation with Groq: {e}")
         raise HTTPException(status_code=500, detail="Failed to generate chat response.")

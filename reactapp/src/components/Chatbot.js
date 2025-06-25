@@ -1,25 +1,25 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
-    Box, 
-    Container, 
-    Typography, 
-    Paper, 
-    TextField, 
+    Box,
+    Container,
+    Typography,
+    Paper,
+    TextField, // Added missing IconButton import
     Button,
     List, 
     ListItem, 
-    Select, MenuItem, ListSubheader, Divider, Chip, IconButton // Added missing IconButton import
+    Select, MenuItem, ListSubheader, Divider, Chip, IconButton, Drawer, ListItemText
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SendIcon from '@mui/icons-material/Send';
 import HomeIcon from '@mui/icons-material/Home';
 import AttachFileIcon from '@mui/icons-material/AttachFile'; // For file uploads
 import MicIcon from '@mui/icons-material/Mic'; // For voice messages
-import { useLanguage, languages } from '../contexts/LanguageProvider';
+import TranslateIcon from '@mui/icons-material/Translate';
+import { useLanguage, languages } from '../contexts/LanguageProvider'; // Added missing TranslateIcon import
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid'; // For unique chat session IDs
 import palmPilotLogo from '../images/petannaik_logo.png'; // Using PetanNaik logo for PalmPilot
-import TranslateIcon from '@mui/icons-material/Translate'; // Added missing import
 
 
 // Use an environment variable for the API URL. On Render, you will set this in the environment settings for your frontend app.
@@ -27,8 +27,6 @@ import TranslateIcon from '@mui/icons-material/Translate'; // Added missing impo
 const CHATBOT_API = process.env.REACT_APP_CHATBOT_API_URL || "http://127.0.0.1:8000/api/v1/messaging/chatbot";
 const USER_ID = "13f5223e-f04a-4fa8-9ef2-cf36060f0d6d";
 
-const CHAT_SESSIONS_KEY = 'petanNaikChatSessions';
-const ACTIVE_CHAT_ID_KEY = 'petanNaikActiveChatId';
 // Removed unused drawerWidth as the drawer is now handled by Layout.js
 const drawerWidth = 240; // Define drawer width for consistent use
 
@@ -40,6 +38,9 @@ const Chatbot = () => {
     const [loading, setLoading] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
     const messagesEndRef = useRef(null);
+    const CHAT_SESSIONS_KEY = 'petanNaikChatSessions';
+    const ACTIVE_CHAT_ID_KEY = 'petanNaikActiveChatId';
+
     const { language, setLanguage, translations } = useLanguage();
     const navigate = useNavigate();
     
@@ -270,42 +271,80 @@ const Chatbot = () => {
     };
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}> {/* Outer Box to manage Drawer and Main Content side-by-side */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'white' }}>
                 {/* Hero Section for Chatbot */}
-                <Box 
+                <Box
                 sx={{ 
-                    bgcolor: '#FEFAE0', 
+                    bgcolor: '#FEFAE0', /* Changed to FEFAE0 for hero section */
                     color: '#4D533D',
                     py: 4,
                     textAlign: 'center'
                 }}
             >
                 <Container>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
+                    <Box sx={{ 
+                        display: 'flex', 
+                        flexDirection: 'column', /* Stack items vertically */
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        mb: 2 
+                    }}>
                         <Box
                             component="img"
                             src={palmPilotLogo} // Use imported PalmPilot logo
                             alt="PalmPilot Assistant Logo"
-                            sx={{ height: { xs: 40, md: 100 }, width: { xs: 40, md: 500 }, mr: 1.5 }}
+                            sx={{ height: 100, width: 'auto', maxWidth: '80%', objectFit: 'contain', mb: 2 }} /* Adjusted sizing and added mb */
                         />
-                        <Typography variant="h6" sx={{ mb: 2 }}> {/* Use translations.chatbot.consultantTitle */}
+                        <Typography variant="h4" sx={{ mb: 1, fontWeight: 'bold', color: '#166534' }}> {/* Use translations.chatbot.consultantTitle */}
                             {translations.chatbot.consultantTitle}
                         </Typography>
-                        <Typography variant="body1" sx={{ opacity: 0.9 }}> {/* Use translations.chatbot.consultantSubtitle */}
+                        <Typography variant="body1" sx={{ opacity: 0.9, maxWidth: '80%', mx: 'auto' }}> {/* Use translations.chatbot.consultantSubtitle */}
                             {translations.chatbot.consultantSubtitle}
                         </Typography>
                     </Box>
                 </Container>
-                {/* Main Chat Container */}
-                <Container maxWidth="lg" sx={{ flex: 1, py: 4, display: 'flex', flexDirection: 'column', bgcolor: '#FEFAE0' }}>
-                {/* Chat Controls */}
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                </Box> {/* Closing tag for the hero section Box */}
+                
+            {/* Main Content Area: Drawer + Chat */}
+            <Box sx={{ display: 'flex', flexGrow: 1 }}>
+                {/* Side Menu (Drawer) */}
+                <Drawer
+                    variant="permanent"
+                    sx={{
+                        width: drawerWidth,
+                        flexShrink: 0,
+                        [`& .MuiDrawer-paper`]: {
+                            width: drawerWidth,
+                            boxSizing: 'border-box',
+                            position: 'relative', // Important for flex layout
+                            bgcolor: '#f0fdf4', // Light green background for the drawer
+                            borderRight: '1px solid #e0e0e0',
+                        },
+                    }}
+                >
+                    <List sx={{ p: 2 }}>
+                        <ListSubheader sx={{ bgcolor: 'inherit', fontWeight: 'bold', color: '#166534', mb: 1 }}>
+                            {translations.common.menu}
+                        </ListSubheader>
+                        <ListItem button onClick={handleNewChat} sx={{ mb: 1 }}>
+                            <ListItemText primary="New Chat" />
+                        </ListItem>
+                        <ListItem button onClick={clearChat} sx={{ mb: 1 }}>
+                            <ListItemText primary={translations.chatbot.clear} />
+                        </ListItem>
+                        <ListItem button onClick={() => navigate('/')} sx={{ mb: 2 }}>
+                            <ListItemText primary={translations.common.home} />
+                        </ListItem>
+                        <Divider sx={{ mb: 2 }} />
+                        <ListSubheader sx={{ bgcolor: 'inherit', fontWeight: 'bold', color: '#166534', mb: 1 }}>
+                            {translations.common.language}
+                        </ListSubheader>
                         <Select
                             value={language}
                             onChange={handleLanguageChange}
+                            fullWidth
                             size="small"
-                            sx={{ 
+                            sx={{
                                 bgcolor: 'white',
                                 '& .MuiOutlinedInput-notchedOutline': {
                                     borderColor: '#22c55e',
@@ -321,39 +360,48 @@ const Chatbot = () => {
                                 </MenuItem>
                             ))}
                         </Select>
-                        <Button
-                            startIcon={<DeleteIcon />}
-                            onClick={clearChat}
-                            variant="outlined"
-                            sx={{ 
-                                borderColor: '#ef4444', 
-                                color: '#ef4444',
-                                '&:hover': { 
-                                    borderColor: '#dc2626', 
-                                    bgcolor: '#fef2f2' 
-                                }
-                            }}
-                        >
-                            {translations.chatbot.clear}
-                        </Button>
-                    </Box>
-                    
-                    <Button
-                        startIcon={<HomeIcon />}
-                        onClick={() => navigate('/')}
-                        variant="outlined"
-                        sx={{ 
-                            borderColor: '#22c55e', 
-                            color: '#22c55e',
-                            '&:hover': { 
-                                borderColor: '#16a34a', 
-                                bgcolor: '#f0fdf4' 
-                            }
-                        }}
-                    >
-                        Back to Home
-                    </Button>
-                </Box>
+                        <Divider sx={{ my: 2 }} />
+                        <ListSubheader sx={{ bgcolor: 'inherit', fontWeight: 'bold', color: '#166534', mb: 1 }}>
+                            Chat History
+                        </ListSubheader>
+                        {chatSessions.map(session => (
+                            <ListItem
+                                key={session.id}
+                                button
+                                selected={session.id === activeChatSessionId}
+                                onClick={() => handleSelectChat(session.id)}
+                                sx={{
+                                    mb: 0.5,
+                                    '&.Mui-selected': {
+                                        bgcolor: '#dcfce7',
+                                        '&:hover': { bgcolor: '#c8f7d7' }
+                                    }
+                                }}
+                            >
+                                <ListItemText primary={session.name} sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} />
+                                <IconButton edge="end" aria-label="delete" onClick={(e) => handleDeleteChat(session.id, e)} size="small">
+                                    <DeleteIcon sx={{ fontSize: 18 }} />
+                                </IconButton>
+                            </ListItem>
+                        ))}
+                    </List>
+                </Drawer>
+
+                {/* Main Chat Content (now wider) */}
+                <Container
+                    maxWidth={false}
+                    disableGutters
+                    sx={{
+                        flex: 1,
+                        py: 4,
+                        px: 4,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        bgcolor: 'white',
+                        ml: `${drawerWidth}px`,
+                        width: `calc(100% - ${drawerWidth}px)` // Take up remaining width
+                    }}
+                >
 
                 {/* Chat Messages Area */}
                 <Paper 
@@ -366,7 +414,8 @@ const Chatbot = () => {
                         bgcolor: '#f8fafc',
                         border: '2px solid #e2e8f0',
                         borderRadius: 2,
-                        minHeight: '60vh'
+                        minHeight: '60vh',
+                        width: '100%' // Ensure paper takes full width
                     }}
                 >
                     {currentMessages.length === 0 && !loading ? ( // Show welcome only if no messages and not loading
@@ -547,9 +596,8 @@ const Chatbot = () => {
                     </Box>
                 </Box>
                 </Container>
-            </Box>
-        // </Box>
+            </Box> {/* This closes the Box that contains the Drawer and the main chat content */}
+        </Box> /* This closes the outermost Box */
     );
-};
-
+}
 export default Chatbot;
