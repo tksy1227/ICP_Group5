@@ -39,8 +39,9 @@ const ProductsPage = () => {
         }
       }
       // Add categoryMatch logic here when categories are implemented
-      // const categoryMatch = categoryFilter ? product.category === categoryFilter : true;
-      return nameMatch && priceMatch; // && categoryMatch; // Corrected logic, removed duplicate return
+      const categoryMatch = categoryFilter ? product.type?.toUpperCase() === categoryFilter : true;
+      return nameMatch && priceMatch && categoryMatch;
+
     });
   }, [products, searchTerm, priceFilter, categoryFilter]);
 
@@ -48,12 +49,21 @@ const ProductsPage = () => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
   };
 
-  // Placeholder categories - you'd fetch or define these properly
-  const categories = [
-    { value: 'fertilizer', label: translations.common.fertilizersNutrition },
-    { value: 'pesticide', label: translations.common.pesticides },
-    { value: 'tool', label: translations.common.farmingTools },
-  ];
+const categories = useMemo(() => {
+  const uniqueTypes = [...new Set(products.map(p => p.type?.toUpperCase()).filter(Boolean))];
+
+  const typeLabelMap = {
+   GOODS: translations.products.GOODS || 'Goods',
+   SERVICE: translations.products.SERVICE || 'Service',
+   DIGITAL: translations.products.DIGITAL || 'Digital',
+  };
+
+
+  return uniqueTypes.map(type => ({
+    value: type, // used for filtering logic
+    label: typeLabelMap[type] || type.charAt(0) + type.slice(1).toLowerCase(), // fallback display
+  }));
+}, [products, translations]);
 
   const priceRanges = [
     { value: '', label: translations.products.allPrices },
@@ -90,7 +100,7 @@ const ProductsPage = () => {
           </FormControl>
           <FormControl size="small" sx={{ minWidth: 180 }}>
             <InputLabel>{translations.products.category}</InputLabel>
-            <Select value={categoryFilter} label={translations.products.category} onChange={(e) => setCategoryFilter(e.target.value)} disabled>
+            <Select value={categoryFilter} label={translations.products.category} onChange={(e) => setCategoryFilter(e.target.value)}>
               <MenuItem value="">{translations.products.allCategories}</MenuItem>
               {categories.map(cat => <MenuItem key={cat.value} value={cat.value}>{cat.label}</MenuItem>)}
             </Select>
