@@ -5,6 +5,23 @@ const { v4: uuidv4 } = require('uuid'); // Import uuid
 const fetch = require('node-fetch'); 
 const cors = require('cors');
 const { Pool } = require('pg'); // import PostgreSQL client
+const cleanHtml = (rawHtml) => {
+    if (!rawHtml) return '';
+    return rawHtml
+        // remove all HTML tags
+        .replace(/<[^>]*>/g, ' ')
+        // decode common HTML entities
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#039;/g, "'")
+        // normalize excessive whitespace
+        .replace(/\s+/g, ' ')
+        .trim();
+};
+
 
 const app = express();
 const PORT = process.env.PORT || 3001; // Backend will run on this port
@@ -110,7 +127,14 @@ app.get('/api/products', async (req, res) => {
             FROM public.np2025_product_final 
             ORDER BY id
         `);
-        res.json(result.rows);
+
+        // Clean descriptions
+        const cleanedRows = result.rows.map(row => ({
+            ...row,
+            description: cleanHtml(row.description)
+        }));
+
+        res.json(cleanedRows);
     } catch (err) {
         console.error('Error fetching products:', err);
         res.status(500).json({ error: 'Failed to fetch products from database' });
@@ -137,7 +161,11 @@ app.get('/api/products/:productId', async (req, res) => {
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Product not found' });
         }
-        res.json(result.rows[0]);
+
+        const product = result.rows[0];
+        product.description = cleanHtml(product.description);
+
+        res.json(product);
     } catch (err) {
         console.error('Error fetching product:', err);
         res.status(500).json({ error: 'Failed to fetch product from database' });
