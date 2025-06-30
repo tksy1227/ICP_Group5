@@ -24,7 +24,6 @@ import palmPilotLogo from '../images/petannaik_logo.png'; // Using PetanNaik log
 
 // Use an environment variable for the API URL. On Render, you will set this in the environment settings for your frontend app.
 // For local development, you can create a .env file in the `reactapp` directory.
-const CHATBOT_API = process.env.REACT_APP_CHATBOT_API_URL || "http://127.0.0.1:8000/api/v1/messaging/chatbot";
 const USER_ID = "13f5223e-f04a-4fa8-9ef2-cf36060f0d6d";
 
 // Removed unused drawerWidth as the drawer is now handled by Layout.js
@@ -168,7 +167,7 @@ const Chatbot = () => {
         setLoading(true);
 
         try {
-            const response = await fetch(CHATBOT_API, {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/v1/messaging/chatbot`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
