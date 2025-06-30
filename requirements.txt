@@ -12,3 +12,8 @@ langchain-community
 replicate
 sqlalchemy
 psycopg2
+redis
+sentence_transformers
+chromadb
+gunicorn
+uvicorn

@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from routes import ecommerce, chatbot
+from routes import ecommerce, chatbot, monitoring
 from schemas.schemas import PingGet200Response,ErrorResponse
 
 app = FastAPI()
@@ -33,3 +33,4 @@ async def health_check(authenticated: bool = True):  # Simulated condition
 
 app.include_router(ecommerce.router, prefix="/api/v1/ecommerce/recommendation", tags=["Ecommerce"])
 app.include_router(chatbot.router, prefix="/api/v1/messaging", tags=["Chatbot"])
+app.include_router(monitoring.router, prefix="/api/v1/monitoring", tags=['Monitoring'])
