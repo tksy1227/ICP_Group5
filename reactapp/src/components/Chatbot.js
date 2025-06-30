@@ -109,18 +109,6 @@ const Chatbot = () => {
         }
     };
 
-    const clearChat = () => {
-        if (!activeChatSessionId) return;
-        setChatSessions(prevSessions =>
-            prevSessions.map(session =>
-                session.id === activeChatSessionId
-                    ? { ...session, messages: [] }
-                    : session
-            ),
-        setSelectedFile(null) // Clear selected file as well
-        );
-    };
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!input.trim() && !selectedFile) return; // Allow sending if only a file is selected
@@ -194,7 +182,13 @@ const Chatbot = () => {
 
             if (response.ok) {
                 const data = await response.json();
-                const botMessageText = data.message || translations.chatbot.error;
+                let botMessageText = data.message || translations.chatbot.error;
+
+                // If the selected language is not English, translate the bot's response.
+                if (language !== 'en' && botMessageText) {
+                    botMessageText = await translateText(botMessageText, language);
+                }
+
                 setChatSessions(prev => prev.map(s => s.id === currentSessionId ? {...s, messages: [...s.messages, {type: 'bot', text: botMessageText}]} : s));
             } else {
                 setChatSessions(prev => prev.map(s => s.id === currentSessionId ? {...s, messages: [...s.messages, {type: 'bot', text: translations.chatbot.connectionError }]} : s));
@@ -207,19 +201,31 @@ const Chatbot = () => {
         }
     };
 
-    // Mock translation function (replace with actual API call in a real app)
-    const mockTranslateAPI = async (text, targetLang) => {
-        return new Promise(resolve => {
-            setTimeout(() => {
-                if (targetLang === 'id') {
-                    resolve(`${text} (diterjemahkan ke Bahasa Indonesia)`);
-                } else {
-                    resolve(`${text} (translated to ${targetLang})`);
-                }
-            }, 300); // Simulate network delay
-        });
-    };
+    const translateText = async (text, targetLang) => {
+        try {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/api/v1/translate`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    text: text,
+                    target_language: targetLang,
+                }),
+            });
 
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Translation failed');
+            }
+
+            const data = await response.json();
+            return data.translated_text;
+        } catch (error) {
+            console.error('Translation API call failed:', error);
+            return `${text} (translation failed)`;
+        }
+    };
 
     const activeMessages = chatSessions.find(s => s.id === activeChatSessionId)?.messages || [];
 
@@ -239,35 +245,6 @@ const Chatbot = () => {
     };
     const handleRemoveSelectedFile = () => {
         setSelectedFile(null);
-    };
-
-    const handleTranslateMessage = async (messageIndexInSession, textToTranslate) => {
-        if (!activeChatSessionId) return;
-
-        // Optional: Add a visual cue that translation is in progress for this specific message
-
-        try {
-            const translatedText = await mockTranslateAPI(textToTranslate, 'id'); // 'id' for Indonesian
-            setChatSessions(prevSessions =>
-                prevSessions.map(session => {
-                    if (session.id === activeChatSessionId) {
-                        const updatedMessages = session.messages.map((msg, index) => {
-                            if (index === messageIndexInSession) {
-                                return { ...msg, text: translatedText, _isTranslatedToId: true }; // Mark as translated
-                            }
-                            return msg;
-                        });
-                        return { ...session, messages: updatedMessages };
-                    }
-                    return session;
-                })
-            );
-        } catch (error) {
-            console.error("Translation error:", error);
-            // Optionally, update the message with an error or show a toast
-        } finally {
-            // End visual cue for translation if one was started
-        }
     };
 
     return (
@@ -319,6 +296,7 @@ const Chatbot = () => {
                             position: 'relative', // Important for flex layout
                             bgcolor: '#f0fdf4', // Light green background for the drawer
                             borderRight: '1px solid #e0e0e0',
+                            overflowY: 'auto', // Ensure the drawer content is scrollable
                         },
                     }}
                 >
@@ -328,9 +306,6 @@ const Chatbot = () => {
                         </ListSubheader>
                         <ListItem button onClick={handleNewChat} sx={{ mb: 1 }}>
                             <ListItemText primary="New Chat" />
-                        </ListItem>
-                        <ListItem button onClick={clearChat} sx={{ mb: 1 }}>
-                            <ListItemText primary={translations.chatbot.clear} />
                         </ListItem>
                         <ListItem button onClick={() => navigate('/')} sx={{ mb: 2 }}>
                             <ListItemText primary={translations.common.home} />
@@ -499,23 +474,6 @@ const Chatbot = () => {
                                                 {message.text}
                                             </Typography>
                                         </Paper>
-                                        {message.type === 'bot' && !message._isTranslatedToId && (
-                                            <IconButton
-                                                size="small"
-                                                onClick={() => handleTranslateMessage(index, message.text)}
-                                                aria-label="translate to indonesian"
-                                                title="Translate to Indonesian"
-                                                sx={{
-                                                    color: '#495057', 
-                                                    p: 0.5,
-                                                    '&:hover': {
-                                                        backgroundColor: 'rgba(0, 0, 0, 0.04)'
-                                                    }
-                                                }}
-                                            >
-                                                <TranslateIcon sx={{ fontSize: '1.1rem' }} />
-                                            </IconButton>
-                                        )}
                                     </Box>
                                 </ListItem>
                             ))}
