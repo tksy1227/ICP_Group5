@@ -82,6 +82,7 @@ import borateMahkota25kgImage from '../images/products/Borate_Mahkota_25kg.avif'
 import npkPhonskaPlus15151525kgImage from '../images/products/NPK_Phonska_Plus_15_15_15_25kg.avif';
 import mahkotaZa50kgImage from '../images/products/Mahkota_ZA_50kg.avif';
 import pupukMopKclCanadaCapMahkota50KgImage from '../images/products/Pupuk_MOP_KCL_Canada_Cap_Mahkota_50kg.avif';
+import sawitprologoImage from '../images/sawitpro_logo.png';
 
 const ProductContext = createContext();
 
@@ -96,50 +97,50 @@ const getProductImage = (productName, productSku) => {
     // Removed unused imports: petanNaikLogo, usericon
     // Basic image mapping - add more as needed based on your database product names
     const imageMap = {
-    'ujisampeldaun': topiSawitproImage,
+    'ujisampeldaun': sawitprologoImage,
     'topisawitprohijau': topiSawitproImage,
     'kaosageninovasitopihijaugoodiebag': kaosAgenInovasiPlusTopiHijauPlusGoodieBagImage,
     'kaosageninovasisawitprosizel': kaosAgenInovasiSawitproImage,
-    'kaospolosawitproukkuranxl': topiSawitproImage,
-    'benihsawittopaz13seri4100butir': topiSawitproImage, 
-    'kuponbelanja150000': topiSawitproImage,
-    'kuponbelanja25000': topiSawitproImage,
-    'tokenpln100000': topiSawitproImage,
-    'tokenpln200000': topiSawitproImage,
-    'kuponbelanja200000': topiSawitproImage,
-    'kuponbelanja500000': topiSawitproImage,
-    'kuponbelanja50000': topiSawitproImage,
-    'kuponbelanja100000': topiSawitproImage,
-    'minyakkorengcamar2liter': topiSawitproImage,
-    'mopkclcapdaun50kg': topiSawitproImage,
-    'pulsatelkomsel150000': topiSawitproImage,
-    'pulsatelkomsel25000': topiSawitproImage,
-    'pulsatelkomsel50000': topiSawitproImage,
-    'pulsatelkomsel200000': topiSawitproImage,
-    'tokenpln20000': topiSawitproImage,
-    'pulsatelkomsel300000': topiSawitproImage,
-    'pulsatelkomsel100000': topiSawitproImage,
-    'tokenpln50000': topiSawitproImage,
-    'minyakkorengcamar1literramadhanberkah': topiSawitproImage,
-    'fosfatphosgreen25kg': topiSawitproImage,
+    'kaospolosawitproukkuranxl': sawitprologoImage,
+    'benihsawittopaz13seri4100butir': sawitprologoImage, 
+    'kuponbelanja150000': sawitprologoImage,
+    'kuponbelanja25000': sawitprologoImage,
+    'tokenpln100000': sawitprologoImage,
+    'tokenpln200000': sawitprologoImage,
+    'kuponbelanja200000': sawitprologoImage,
+    'kuponbelanja500000': sawitprologoImage,
+    'kuponbelanja50000': sawitprologoImage,
+    'kuponbelanja100000': sawitprologoImage,
+    'minyakkorengcamar2liter': sawitprologoImage,
+    'mopkclcapdaun50kg': sawitprologoImage,
+    'pulsatelkomsel150000': sawitprologoImage,
+    'pulsatelkomsel25000': sawitprologoImage,
+    'pulsatelkomsel50000': sawitprologoImage,
+    'pulsatelkomsel200000': sawitprologoImage,
+    'tokenpln20000': sawitprologoImage,
+    'pulsatelkomsel300000': sawitprologoImage,
+    'pulsatelkomsel100000': sawitprologoImage,
+    'tokenpln50000': sawitprologoImage,
+    'minyakkorengcamar1literramadhanberkah': sawitprologoImage,
+    'fosfatphosgreen25kg': sawitprologoImage,
     'npkphonskaplus15151525kg': npkPhonskaPlus15151525kgImage,
     'kapurpertaniankebomas50kg': kapurPertanianKebomas50KgImage,
-    'ureanitrea46n50kg': topiSawitproImage,
-    'sp26petro25kg': topiSawitproImage,
-    'petrozaplus50kg': topiSawitproImage,
-    'doktersawitkonsultasi': topiSawitproImage,
-    'kunjunganagronomis': topiSawitproImage,
-    'minyakkorengharumas1liter': topiSawitproImage,
+    'ureanitrea46n50kg': sawitprologoImage,
+    'sp26petro25kg': sawitprologoImage,
+    'petrozaplus50kg': sawitprologoImage,
+    'doktersawitkonsultasi': sawitprologoImage,
+    'kunjunganagronomis': sawitprologoImage,
+    'minyakkorengharumas1liter': sawitprologoImage,
     'dolomitem10050kg': dolomiteM10050kgImage,
     'npkmutiara16161650kg': npkMutiara16161650kgImage,
-    'ureapusrins5050kg': topiSawitproImage,
+    'ureapusrins5050kg': sawitprologoImage,
     'mopkclcanadacapmahkota50kg': pupukMopKclCanadaCapMahkota50KgImage,
     'tspchinacapdaun50kg': tspChinaCapDaun50kgImage
 };
-    
-    const selectedImage = imageMap[nameKey] || topiSawitproImage; // Default to topi image
-    console.log('Selected image:', selectedImage === topiSawitproImage ? 'Default (Topi)' : 'Mapped');
-    
+
+    const selectedImage = imageMap[nameKey] || sawitprologoImage; // Default to sawitpro logo image
+    console.log('Selected image:', selectedImage === sawitprologoImage ? 'Default (Sawitpro Logo)' : 'Mapped');
+
     return selectedImage;
 };
 
